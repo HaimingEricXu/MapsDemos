@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -15,6 +15,7 @@
 		96764DB324915F2700B4B0B3 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 96764DB124915F2700B4B0B3 /* LaunchScreen.storyboard */; };
 		96764DBE24915F2700B4B0B3 /* GoogleProjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96764DBD24915F2700B4B0B3 /* GoogleProjectTests.swift */; };
 		96764DC924915F2700B4B0B3 /* GoogleProjectUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96764DC824915F2700B4B0B3 /* GoogleProjectUITests.swift */; };
+		96C7BE3A2493F59800F9FF7C /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C7BE392493F59800F9FF7C /* MapViewController.swift */; };
 		E1B34F0C7A0E80686BC5D478 /* libPods-GoogleProject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 83344D2D3BAAA8CE31BE184F /* libPods-GoogleProject.a */; };
 /* End PBXBuildFile section */
 
@@ -51,6 +52,7 @@
 		96764DC424915F2700B4B0B3 /* GoogleProjectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GoogleProjectUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		96764DC824915F2700B4B0B3 /* GoogleProjectUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleProjectUITests.swift; sourceTree = "<group>"; };
 		96764DCA24915F2700B4B0B3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		96C7BE392493F59800F9FF7C /* MapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewController.swift; sourceTree = "<group>"; };
 		B1764BFB9789A36D696C5596 /* Pods-GoogleProject.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GoogleProject.debug.xcconfig"; path = "Target Support Files/Pods-GoogleProject/Pods-GoogleProject.debug.xcconfig"; sourceTree = "<group>"; };
 		D919181953EF02E6A334D7EB /* Pods-GoogleProject.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GoogleProject.release.xcconfig"; path = "Target Support Files/Pods-GoogleProject/Pods-GoogleProject.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -87,7 +89,6 @@
 				B1764BFB9789A36D696C5596 /* Pods-GoogleProject.debug.xcconfig */,
 				D919181953EF02E6A334D7EB /* Pods-GoogleProject.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -123,6 +124,7 @@
 				96764DAF24915F2700B4B0B3 /* Assets.xcassets */,
 				96764DB124915F2700B4B0B3 /* LaunchScreen.storyboard */,
 				96764DB424915F2700B4B0B3 /* Info.plist */,
+				96C7BE392493F59800F9FF7C /* MapViewController.swift */,
 			);
 			path = GoogleProject;
 			sourceTree = "<group>";
@@ -331,6 +333,7 @@
 				96764DAB24915F2400B4B0B3 /* ViewController.swift in Sources */,
 				96764DA724915F2400B4B0B3 /* AppDelegate.swift in Sources */,
 				96764DA924915F2400B4B0B3 /* SceneDelegate.swift in Sources */,
+				96C7BE3A2493F59800F9FF7C /* MapViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

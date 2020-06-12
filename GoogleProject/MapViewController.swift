@@ -17,21 +17,25 @@ import UIKit
 import GoogleMaps
 import GooglePlaces
 
-class ViewController: UIViewController, CLLocationManagerDelegate {
-    let locationManager = CLLocationManager()
+class MapViewController: UIViewController {
+
+    @IBOutlet weak var scene: UIView!
+    @IBOutlet weak var backButton: UIButton!
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        requestAuthorization()
+        let long: Double = 151.20
+        let lat: Double = -33.86
+        let camera = GMSCameraPosition.camera(withLatitude: lat, longitude: long, zoom: 5.0)
+        let mapView = GMSMapView.map(withFrame: self.view.frame, camera: camera)
+        mapView.settings.setAllGesturesEnabled(true)
+        scene.addSubview(mapView)
+        let marker = GMSMarker()
+        marker.position = CLLocationCoordinate2D(latitude: lat, longitude: long)
+        marker.map = mapView
     }
 
-    func requestAuthorization() {
-        locationManager.requestWhenInUseAuthorization()
-    }
-
-    @IBAction func mapStart(_ sender: Any) {
-        let vc = storyboard?.instantiateViewController(identifier: "map_vc") as! MapViewController
-        vc.modalPresentationStyle = .fullScreen
-        present(vc, animated: true)
+    @IBAction func menu(_ sender: Any) {
+        self.dismiss(animated: true, completion: nil)
     }
 }
