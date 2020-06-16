@@ -17,7 +17,7 @@ import UIKit
 import GoogleMaps
 import GooglePlaces
 
-class ViewController: UIViewController, CLLocationManagerDelegate {
+class WelcomeViewController: UIViewController, CLLocationManagerDelegate {
     let locationManager = CLLocationManager()
 
     override func viewDidLoad() {
