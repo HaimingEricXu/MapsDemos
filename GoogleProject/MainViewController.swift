@@ -102,6 +102,13 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         }
         self.view.backgroundColor = darkModeToggle ? .black : .white
         scene.backgroundColor = darkModeToggle ? .black : .white
+        actionSheet.actionTextColor = darkModeToggle ? .white : .black
+        actionSheet.actionTintColor = darkModeToggle ? .black : .white
+        actionSheet.backgroundColor = darkModeToggle ? .black : .white
+        actionSheet.headerDividerColor = darkModeToggle ? .black : .white
+        actionSheet.rippleColor = darkModeToggle ? .black : .white
+        actionSheet.titleTextColor = darkModeToggle ? .white : .black
+        actionSheet.messageTextColor = darkModeToggle ? .white : .black
     }
     
     func refreshButtons() {
