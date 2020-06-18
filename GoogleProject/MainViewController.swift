@@ -55,11 +55,15 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                             self.refreshMap(newLoc: false)
                                             self.refreshScreen()
                                             })
+        // set a place for this (set zoom)
         let indoor = MDCActionSheetAction(title: "Toggle Indoor Map",
                                           image: UIImage(systemName: "Home"),
                                           handler: {Void in
                                             self.indoorToggle = !self.indoorToggle
-                                            self.refreshMap(newLoc: false)
+                                            self.currentLat = -33.856689
+                                            self.currentLong = 151.21526
+                                            self.zoom = 20.0
+                                            self.refreshMap(newLoc: true)
                                             self.refreshScreen()
                                         })
         let darkMode = MDCActionSheetAction(title: "Toggle Dark Mode",
