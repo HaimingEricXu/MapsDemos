@@ -16,6 +16,9 @@
 		96764DB324915F2700B4B0B3 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 96764DB124915F2700B4B0B3 /* LaunchScreen.storyboard */; };
 		96764DBE24915F2700B4B0B3 /* GoogleProjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96764DBD24915F2700B4B0B3 /* GoogleProjectTests.swift */; };
 		96764DC924915F2700B4B0B3 /* GoogleProjectUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96764DC824915F2700B4B0B3 /* GoogleProjectUITests.swift */; };
+		96EC153F249BEFB100F59A9C /* darkMode.json in Resources */ = {isa = PBXBuildFile; fileRef = 96EC153E249BEFB100F59A9C /* darkMode.json */; };
+		96EC1541249BF04000F59A9C /* standardMode.json in Resources */ = {isa = PBXBuildFile; fileRef = 96EC1540249BF04000F59A9C /* standardMode.json */; };
+		96EC1543249BF61400F59A9C /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EC1542249BF61400F59A9C /* MainViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +54,9 @@
 		96764DC424915F2700B4B0B3 /* GoogleProjectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GoogleProjectUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		96764DC824915F2700B4B0B3 /* GoogleProjectUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleProjectUITests.swift; sourceTree = "<group>"; };
 		96764DCA24915F2700B4B0B3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		96EC153E249BEFB100F59A9C /* darkMode.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = darkMode.json; sourceTree = SOURCE_ROOT; };
+		96EC1540249BF04000F59A9C /* standardMode.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = standardMode.json; sourceTree = SOURCE_ROOT; };
+		96EC1542249BF61400F59A9C /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		B1764BFB9789A36D696C5596 /* Pods-GoogleProject.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GoogleProject.debug.xcconfig"; path = "Target Support Files/Pods-GoogleProject/Pods-GoogleProject.debug.xcconfig"; sourceTree = "<group>"; };
 		D919181953EF02E6A334D7EB /* Pods-GoogleProject.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GoogleProject.release.xcconfig"; path = "Target Support Files/Pods-GoogleProject/Pods-GoogleProject.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -118,9 +124,12 @@
 				96764DA624915F2400B4B0B3 /* AppDelegate.swift */,
 				96764DA824915F2400B4B0B3 /* SceneDelegate.swift */,
 				96764DAA24915F2400B4B0B3 /* WelcomeViewController.swift */,
+				96EC1542249BF61400F59A9C /* MainViewController.swift */,
 				96764DAC24915F2400B4B0B3 /* Main.storyboard */,
 				96764DAF24915F2700B4B0B3 /* Assets.xcassets */,
 				96764DB124915F2700B4B0B3 /* LaunchScreen.storyboard */,
+				96EC1540249BF04000F59A9C /* standardMode.json */,
+				96EC153E249BEFB100F59A9C /* darkMode.json */,
 				96764DB424915F2700B4B0B3 /* Info.plist */,
 			);
 			path = GoogleProject;
@@ -259,6 +268,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				96EC153F249BEFB100F59A9C /* darkMode.json in Resources */,
+				96EC1541249BF04000F59A9C /* standardMode.json in Resources */,
 				96764DB324915F2700B4B0B3 /* LaunchScreen.storyboard in Resources */,
 				96764DB024915F2700B4B0B3 /* Assets.xcassets in Resources */,
 				96764DAE24915F2400B4B0B3 /* Main.storyboard in Resources */,
@@ -348,6 +359,7 @@
 				96764DAB24915F2400B4B0B3 /* WelcomeViewController.swift in Sources */,
 				96764DA724915F2400B4B0B3 /* AppDelegate.swift in Sources */,
 				96764DA924915F2400B4B0B3 /* SceneDelegate.swift in Sources */,
+				96EC1543249BF61400F59A9C /* MainViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
