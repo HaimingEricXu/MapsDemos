@@ -21,26 +21,26 @@ import MaterialComponents.MaterialActionSheet
 
 class MainViewController: UIViewController, CLLocationManagerDelegate {
     
-    var trafficToggle: Bool = false
-    var darkModeToggle: Bool = false
-    var indoorToggle: Bool = false
-    var zoom: Float = 10.0
-    var currentLat: Double = -33.86
-    var currentLong: Double = 151.20
-    var resultsViewController: GMSAutocompleteResultsViewController?
-    var searchController: UISearchController?
-    var resultView: UITextView?
-    let locationManager = CLLocationManager()
-    var camera: GMSCameraPosition!
-    var mapView: GMSMapView!
-    var marker: GMSMarker!
-    @IBOutlet weak var scene: UIView!
-    @IBOutlet weak var welcomeLabel: UILabel!
+    private var trafficToggle: Bool = false
+    private var darkModeToggle: Bool = false
+    private var indoorToggle: Bool = false
+    private var zoom: Float = 10.0
+    private var currentLat: Double = -33.86
+    private var currentLong: Double = 151.20
+    private var resultsViewController: GMSAutocompleteResultsViewController?
+    private var searchController: UISearchController?
+    private var resultView: UITextView?
+    private let locationManager = CLLocationManager()
+    private var camera: GMSCameraPosition!
+    private var mapView: GMSMapView!
+    private var marker: GMSMarker!
+    @IBOutlet weak private var scene: UIView!
+    @IBOutlet weak private var welcomeLabel: UILabel!
     
-    let actionSheet = MDCActionSheetController(title: "Options", message: "Pick a feature")
-    let optionsButton = MDCFloatingButton()
-    let zoomInButton = MDCFloatingButton()
-    let zoomOutButton = MDCFloatingButton()
+    private let actionSheet = MDCActionSheetController(title: "Options", message: "Pick a feature")
+    private let optionsButton = MDCFloatingButton()
+    private let zoomInButton = MDCFloatingButton()
+    private let zoomOutButton = MDCFloatingButton()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,7 +55,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                             self.refreshMap(newLoc: false)
                                             self.refreshScreen()
                                             })
-        // set a place for this (set zoom)
         let indoor = MDCActionSheetAction(title: "Toggle Indoor Map",
                                           image: UIImage(systemName: "Home"),
                                           handler: {Void in
@@ -79,7 +78,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         actionSheet.addAction(darkMode)
     }
     
-    func refreshScreen() {
+    private func refreshScreen() {
         self.view.backgroundColor = darkModeToggle ? .darkGray : .white
         self.scene.backgroundColor = darkModeToggle ? .darkGray : .white
         resultsViewController = GMSAutocompleteResultsViewController()
@@ -92,12 +91,14 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         subView.addSubview((searchController?.searchBar)!)
         scene.addSubview((searchController?.searchBar)!)
         searchController?.searchBar.sizeToFit()
+        
         welcomeLabel.textColor = darkModeToggle ? .white : .black
         resultsViewController?.tableCellSeparatorColor = darkModeToggle ? .black : .white
         resultsViewController?.tableCellBackgroundColor = darkModeToggle ? .black : .white
         resultsViewController?.primaryTextHighlightColor = darkModeToggle ? .white : .black
         resultsViewController?.primaryTextColor = darkModeToggle ? .white : .black
         resultsViewController?.secondaryTextColor = darkModeToggle ? .white : .black
+        
         searchController?.searchBar.barTintColor = darkModeToggle ? .black : .white
         searchController?.searchBar.tintColor = darkModeToggle ? .white : .black
         searchController?.searchBar.backgroundColor = darkModeToggle ? .black : .white
@@ -105,7 +106,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
             textfield.textColor = darkModeToggle ? .white : .black
         }
         self.view.backgroundColor = darkModeToggle ? .black : .white
-        scene.backgroundColor = darkModeToggle ? .black : .white
+        //scene.backgroundColor = darkModeToggle ? .black : .white
         actionSheet.actionTextColor = darkModeToggle ? .white : .black
         actionSheet.actionTintColor = darkModeToggle ? .black : .white
         actionSheet.backgroundColor = darkModeToggle ? .black : .white
@@ -115,29 +116,25 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         actionSheet.messageTextColor = darkModeToggle ? .white : .black
     }
     
-    func refreshButtons() {
-        optionsButton.setImage(UIImage(systemName: "gear"), for: .normal)
-        optionsButton.backgroundColor = darkModeToggle ? .darkGray : .white
-        optionsButton.frame = CGRect(x: 348, y: 832, width: 48, height: 48)
-        optionsButton.setElevation(ShadowElevation(rawValue: 6), for: .normal)
+    private func refreshButtons() {
+        let buttons = [optionsButton, zoomOutButton, zoomInButton]
+        let iconImages = ["gear", "minus", "plus"]
         optionsButton.addTarget(self, action: #selector(optionsButtonTapped(optionsButton:)), for: .touchUpInside)
-        zoomInButton.setImage(UIImage(systemName: "plus"), for: .normal)
-        zoomInButton.backgroundColor = darkModeToggle ? .darkGray : .white
-        zoomInButton.frame = CGRect(x: 348, y: 718, width: 48, height: 48)
-        zoomInButton.setElevation(ShadowElevation(rawValue: 6), for: .normal)
         zoomInButton.addTarget(self, action: #selector(zoomInButtonTapped(zoomInButton:)), for: .touchUpInside)
-        zoomOutButton.setImage(UIImage(systemName: "minus"), for: .normal)
-        zoomOutButton.backgroundColor = darkModeToggle ? .darkGray : .white
-        zoomOutButton.frame = CGRect(x: 348, y: 775, width: 48, height: 48)
-        zoomOutButton.setElevation(ShadowElevation(rawValue: 6), for: .normal)
         zoomOutButton.addTarget(self, action:
             #selector(zoomOutButtonTapped(zoomOutButton:)), for: .touchUpInside)
-        self.view.addSubview(optionsButton)
-        self.view.addSubview(zoomInButton)
-        self.view.addSubview(zoomOutButton)
+        var ycoord: Int = 832
+        for button in buttons {
+            button.backgroundColor = darkModeToggle ? .darkGray : .white
+            button.setElevation(ShadowElevation(rawValue: 6), for: .normal)
+            button.frame = CGRect(x: 348, y: ycoord, width: 48, height: 48)
+            button.setImage(UIImage(systemName: iconImages[(832 - ycoord) / 57]), for: .normal)
+            ycoord -= 57
+            self.view.addSubview(button)
+        }
     }
     
-    func refreshMap(newLoc: Bool) {
+    private func refreshMap(newLoc: Bool) {
         if (newLoc) {
             camera = GMSCameraPosition.camera(withLatitude: currentLat, longitude: currentLong, zoom: zoom)
             mapView = GMSMapView.map(withFrame: self.view.frame, camera: camera)
@@ -162,14 +159,14 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         searchController?.title = ""
     }
     
-    @objc func optionsButtonTapped(optionsButton: MDCFloatingButton){
+    @objc private func optionsButtonTapped(optionsButton: MDCFloatingButton){
         optionsButton.collapse(true) {
             optionsButton.expand(true, completion: nil)
         }
         present(actionSheet, animated: true, completion: nil)
     }
     
-    @objc func zoomInButtonTapped(zoomInButton: MDCFloatingButton){
+    @objc private func zoomInButtonTapped(zoomInButton: MDCFloatingButton){
         zoomInButton.collapse(true) {
             zoomInButton.expand(true, completion: nil)
         }
@@ -178,7 +175,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         zoom = min(mapView.camera.zoom, 20.0)
     }
     
-    @objc func zoomOutButtonTapped(zoomOutButton: MDCFloatingButton){
+    @objc private func zoomOutButtonTapped(zoomOutButton: MDCFloatingButton){
         zoomOutButton.collapse(true) {
             zoomOutButton.expand(true, completion: nil)
         }
