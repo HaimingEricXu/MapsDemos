@@ -24,7 +24,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     private var trafficToggle: Bool = false
     private var darkModeToggle: Bool = false
     private var indoorToggle: Bool = false
+    private var imageToggle: Bool = false
     private var zoom: Float = 10.0
+    private var currentPlaceID: String = "ChIJP3Sa8ziYEmsRUKgyFmh9AQM"
     private var currentLat: Double = -33.86
     private var currentLong: Double = 151.20
     private var resultsViewController: GMSAutocompleteResultsViewController?
@@ -34,6 +36,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     private var camera: GMSCameraPosition!
     private var mapView: GMSMapView!
     private var marker: GMSMarker!
+    private var icons = [GMSMarker]()
     @IBOutlet weak private var scene: UIView!
     @IBOutlet weak private var welcomeLabel: UILabel!
     
@@ -76,6 +79,20 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                                 self.refreshButtons()
                                         })
         actionSheet.addAction(darkMode)
+        let imageMode = MDCActionSheetAction(title: "Toggle Images",
+                                            image: UIImage(systemName: "Home"),
+                                            handler: {Void in
+                                                self.imageToggle = !self.imageToggle
+                                                self.refreshMap(newLoc: false)
+                                                self.refreshScreen()
+                                        })
+        actionSheet.addAction(imageMode)
+    }
+    
+    private func removeMarkers(){
+        for mark in icons {
+            mark.map = nil
+        }
     }
     
     private func refreshScreen() {
@@ -134,6 +151,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     }
     
     private func refreshMap(newLoc: Bool) {
+        removeMarkers()
         if (newLoc) {
             camera = GMSCameraPosition.camera(withLatitude: currentLat, longitude: currentLong, zoom: zoom)
             mapView = GMSMapView.map(withFrame: self.view.frame, camera: camera)
@@ -150,12 +168,44 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         mapView.settings.setAllGesturesEnabled(true)
         self.scene.addSubview(mapView)
         marker = GMSMarker()
+        icons.append(marker)
         mapView.isTrafficEnabled = trafficToggle
         mapView.isIndoorEnabled = indoorToggle
         marker.position = CLLocationCoordinate2D(latitude: currentLat, longitude: currentLong)
         marker.map = mapView
         resultsViewController?.dismiss(animated: true, completion: nil)
         searchController?.title = ""
+        let fields: GMSPlaceField = GMSPlaceField(rawValue: UInt(GMSPlaceField.photos.rawValue))!
+        let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
+        if (imageToggle) {
+            placesClient.fetchPlace(fromPlaceID: String(currentPlaceID), placeFields: fields,
+                                     sessionToken: nil, callback: {
+                                        (place: GMSPlace?, error: Error?) in
+                                        if let error = error {
+                                            print("An error occurred: \(error.localizedDescription)")
+                                            return
+                                        }
+                                        if let place = place {
+                                                let photoMetadata: GMSPlacePhotoMetadata = place.photos![0]
+                                            placesClient.loadPlacePhoto(photoMetadata, callback: { (photo, error) -> Void in
+                                                    if let error = error {
+                                                        print("Error loading photo metadata: \(error.localizedDescription)")
+                                                        return
+                                                    } else {
+                                                        let size = CGSize(width: 110, height: 110)
+                                                        UIGraphicsBeginImageContextWithOptions(size, false, 0.0);
+                                                        photo?.draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
+                                                        let newImage:UIImage = UIGraphicsGetImageFromCurrentImageContext()!
+                                                        UIGraphicsEndImageContext()
+                                                        let tempImage = newImage.opac(alpha: 0.7)
+                                                        self.marker.icon = tempImage?.circleMask
+                                                    }
+                                                })
+                                        }
+            })
+        } else {
+            marker.icon = UIImage(systemName: "default_marker.png")
+        }
     }
     
     @objc private func optionsButtonTapped(optionsButton: MDCFloatingButton){
@@ -183,7 +233,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         zoom = max(mapView.camera.zoom, 0.0)
     }
     
-    func requestAuthorization() {
+    private func requestAuthorization() {
         locationManager.requestWhenInUseAuthorization()
     }
 }
@@ -193,6 +243,7 @@ extension MainViewController: GMSAutocompleteResultsViewControllerDelegate {
                          didAutocompleteWith place: GMSPlace) {
         currentLat = place.coordinate.latitude
         currentLong = place.coordinate.longitude
+        currentPlaceID = place.placeID!
         refreshMap(newLoc: true)
     }
     
@@ -202,3 +253,32 @@ extension MainViewController: GMSAutocompleteResultsViewControllerDelegate {
     }
 }
 
+extension UIImage {
+    var circleMask: UIImage? {
+        let square = CGSize(width: min(size.width, size.height), height: min(size.width, size.height))
+        let imageView = UIImageView(frame: .init(origin: .init(x: 0, y: 0), size: square))
+        imageView.contentMode = .scaleAspectFill
+        imageView.image = self
+        imageView.layer.cornerRadius = square.width/2
+        imageView.layer.borderColor = UIColor.white.cgColor
+        imageView.layer.borderWidth = 5
+        imageView.layer.masksToBounds = true
+        UIGraphicsBeginImageContextWithOptions(imageView.bounds.size, false, scale)
+        defer {
+            UIGraphicsEndImageContext()
+        }
+        guard let context = UIGraphicsGetCurrentContext() else {
+            return nil
+        }
+        imageView.layer.render(in: context)
+        return UIGraphicsGetImageFromCurrentImageContext()
+    }
+    
+    func opac(alpha: CGFloat) -> UIImage? {
+        UIGraphicsBeginImageContextWithOptions(size, false, scale)
+        draw(at: .zero, blendMode: .normal, alpha: alpha)
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return newImage
+    }
+}
