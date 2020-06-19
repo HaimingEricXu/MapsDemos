@@ -55,6 +55,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                             self.refreshMap(newLoc: false)
                                             self.refreshScreen()
                                             })
+        actionSheet.addAction(traffic)
         let indoor = MDCActionSheetAction(title: "Toggle Indoor Map",
                                           image: UIImage(systemName: "Home"),
                                           handler: {Void in
@@ -65,6 +66,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                             self.refreshMap(newLoc: true)
                                             self.refreshScreen()
                                         })
+        actionSheet.addAction(indoor)
         let darkMode = MDCActionSheetAction(title: "Toggle Dark Mode",
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
@@ -73,8 +75,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                                 self.refreshScreen()
                                                 self.refreshButtons()
                                         })
-        actionSheet.addAction(traffic)
-        actionSheet.addAction(indoor)
         actionSheet.addAction(darkMode)
     }
     
@@ -106,7 +106,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
             textfield.textColor = darkModeToggle ? .white : .black
         }
         self.view.backgroundColor = darkModeToggle ? .black : .white
-        //scene.backgroundColor = darkModeToggle ? .black : .white
         actionSheet.actionTextColor = darkModeToggle ? .white : .black
         actionSheet.actionTintColor = darkModeToggle ? .black : .white
         actionSheet.backgroundColor = darkModeToggle ? .black : .white
