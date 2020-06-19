@@ -87,12 +87,53 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                                 self.refreshScreen()
                                         })
         actionSheet.addAction(imageMode)
+        let currentLocation = MDCActionSheetAction(title: "Current Location",
+                                            image: UIImage(systemName: "Home"),
+                                            handler: {Void in
+                                                self.setCurrentLocation()
+                                                self.refreshScreen()
+                                        })
+        actionSheet.addAction(currentLocation)
+        let panoramicView = MDCActionSheetAction(title: "Panoramic View",
+                                            image: UIImage(systemName: "Home"),
+                                            handler: {Void in
+                                                self.openPanorama()
+                                        })
+        actionSheet.addAction(panoramicView)
     }
     
     private func removeMarkers(){
         for mark in icons {
             mark.map = nil
         }
+    }
+    
+    private func openPanorama() {
+        let vc = storyboard?.instantiateViewController(identifier: "street_vc") as! StreetViewController?
+        vc!.long = currentLong
+        vc!.lat = currentLat
+        vc!.dark = darkModeToggle
+        vc!.modalPresentationStyle = .fullScreen
+        present(vc!, animated: true)
+    }
+    
+    private func setCurrentLocation() {
+        let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
+        placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
+            if let error = error {
+                print("Current Place error: \(error.localizedDescription)")
+                return
+            }
+            if let placeLikelihoodList = placeLikelihoodList {
+                let place = placeLikelihoodList.likelihoods.first?.place
+                if let place = place {
+                    self.currentLat = place.coordinate.latitude
+                    self.currentLong = place.coordinate.longitude
+                    self.currentPlaceID = place.placeID!
+                    self.refreshMap(newLoc: true)
+                }
+            }
+        })
     }
     
     private func refreshScreen() {

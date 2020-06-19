@@ -80,5 +80,38 @@
             </objects>
             <point key="canvasLocation" x="-616" y="104"/>
         </scene>
+        <!--Street View Controller-->
+        <scene sceneID="fxl-JL-SlK">
+            <objects>
+                <viewController storyboardIdentifier="street_vc" id="a87-1J-B6Z" customClass="StreetViewController" customModule="PlacesMapsDemo" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="xdu-m0-h7P">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ls0-iR-oCI">
+                                <rect key="frame" x="18" y="44" width="65" height="22"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title=" Back" image="arrow.left" catalog="system">
+                                    <color key="titleColor" systemColor="linkColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="menu:" destination="a87-1J-B6Z" eventType="touchUpInside" id="yel-cW-rSf"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <viewLayoutGuide key="safeArea" id="Uck-hG-T89"/>
+                    </view>
+                    <connections>
+                        <outlet property="backButton" destination="ls0-iR-oCI" id="VjC-0K-v15"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="woS-tO-4x2" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1506" y="104"/>
+        </scene>
     </scenes>
+    <resources>
+        <image name="arrow.left" catalog="system" width="128" height="98"/>
+    </resources>
 </document>
