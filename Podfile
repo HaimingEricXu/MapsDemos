@@ -6,4 +6,5 @@ target 'GoogleProject' do
   pod 'MaterialComponents/Buttons'
   pod 'MaterialComponents/AppBar'
   pod 'MaterialComponents/ActionSheet'
+  pod 'MaterialComponents/Banner'
 end

@@ -18,8 +18,9 @@ import GoogleMaps
 import GooglePlaces
 import MaterialComponents.MaterialButtons
 import MaterialComponents.MaterialActionSheet
+import MaterialComponents.MaterialBanner
 
-class MainViewController: UIViewController, CLLocationManagerDelegate {
+class MainViewController: UIViewController, CLLocationManagerDelegate, UITableViewDelegate, UITableViewDataSource {
     
     // Indicates if the traffic map can be seen
     private var trafficToggle: Bool = false
@@ -60,6 +61,11 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     // List of all icons; useful for clearing the map
     private var icons = [GMSMarker]()
     
+    // Variables for nearby recommendations feature
+    private let nearby: NSMutableArray = []
+    private let labels: NSMutableArray = []
+    private var likelyLocationsTable: UITableView!
+    
     // Simple UI elements
     @IBOutlet weak private var scene: UIView!
     @IBOutlet weak private var welcomeLabel: UILabel!
@@ -89,9 +95,11 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                           image: UIImage(systemName: "Home"),
                                           handler: {Void in
                                             self.indoorToggle = !self.indoorToggle
-                                            self.currentLat = -33.856689
-                                            self.currentLong = 151.21526
-                                            self.zoom = 20.0
+                                            if (self.indoorToggle) {
+                                                self.currentLat = -33.856689
+                                                self.currentLong = 151.21526
+                                                self.zoom = 20.0
+                                            }
                                             self.refreshMap(newLoc: true)
                                             self.refreshButtons()
                                             self.refreshScreen()
@@ -114,6 +122,16 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                                 self.refreshScreen()
                                         })
         actionSheet.addAction(imageMode)
+        let polygonEnable = MDCActionSheetAction(title: "Toggle Polygons",
+                                            image: UIImage(systemName: "Home"),
+                                            handler: {Void in
+                                                self.polygonToggle = !self.polygonToggle
+                                                self.currentLong = -122.0
+                                                self.currentLat = 37.36
+                                                self.currentPlaceID = "ChIJc3v8avy1j4ARQCU7rBRXVnw"
+                                                self.refreshMap(newLoc: true)
+                                        })
+        actionSheet.addAction(polygonEnable)
         let currentLocation = MDCActionSheetAction(title: "Current Location",
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
@@ -127,16 +145,80 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                                 self.openPanorama()
                                         })
         actionSheet.addAction(panoramicView)
-        let polygonEnable = MDCActionSheetAction(title: "Toggle Polygons",
+        let nearbyRecs = MDCActionSheetAction(title: "Nearby Recommendations",
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
-                                                self.polygonToggle = !self.polygonToggle
-                                                self.currentLong = -122.0
-                                                self.currentLat = 37.36
-                                                self.currentPlaceID = "ChIJc3v8avy1j4ARQCU7rBRXVnw"
-                                                self.refreshMap(newLoc: true)
+                                                self.showNearby()
                                         })
-        actionSheet.addAction(polygonEnable)
+        actionSheet.addAction(nearbyRecs)
+    }
+    
+    // Function to display a table view of nearby places; user selects one to view close-up
+    private func showNearby() {
+        let buttons = [optionsButton, zoomOutButton, zoomInButton]
+        for button in buttons {
+            button.isHidden = true
+        }
+        let barHeight: CGFloat = UIApplication.shared.statusBarFrame.size.height
+        let displayWidth: CGFloat = self.view.frame.width
+        let displayHeight: CGFloat = self.view.frame.height
+        let current: GMSPlacesClient = GMSPlacesClient.shared()
+        current.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
+            if let error = error {
+                print("Current Place error: \(error.localizedDescription)")
+                return
+            }
+            if let placeLikelihoodList = placeLikelihoodList {
+                self.nearby.removeAllObjects()
+                self.labels.removeAllObjects()
+                for loc in placeLikelihoodList.likelihoods {
+                    self.nearby.add(loc.place as GMSPlace)
+                    self.labels.add(loc.place.name as Any)
+                }
+                self.likelyLocationsTable = UITableView(frame: CGRect(x: 0, y: 0, width: displayWidth, height: displayHeight - barHeight))
+                self.likelyLocationsTable.backgroundColor = self.darkModeToggle ? .black : .white
+                self.likelyLocationsTable.sectionIndexTrackingBackgroundColor = self.darkModeToggle ? .black : .white
+                self.likelyLocationsTable.tintColor = self.darkModeToggle ? .black : .white
+                self.likelyLocationsTable.separatorColor = self.darkModeToggle ? .white : .black
+                self.likelyLocationsTable.sectionIndexColor = self.darkModeToggle ? .white : .black
+                self.likelyLocationsTable.sectionIndexBackgroundColor = self.darkModeToggle ? .black : .white
+                self.likelyLocationsTable.register(UITableViewCell.self, forCellReuseIdentifier: "MyCell")
+                self.likelyLocationsTable.dataSource = self
+                self.likelyLocationsTable.delegate = self
+                for view in self.scene.subviews {
+                    view.removeFromSuperview()
+                }
+                self.scene.addSubview(self.likelyLocationsTable)
+            }
+        })
+        definesPresentationContext = true
+    }
+    
+    // Once a location is selected, set current location variables and show it on the map
+    internal func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let loc: GMSPlace = nearby[indexPath.row] as! GMSPlace
+        self.currentPlaceID = loc.placeID!
+        self.currentLong = loc.coordinate.longitude
+        self.currentLat = loc.coordinate.latitude
+        // zoom needs to be high, as these locations tend to be close
+        zoom = 20.0
+        refreshMap(newLoc: true)
+        refreshButtons()
+        refreshScreen()
+    }
+
+    // Helper function to list the correct number of labels in the table view
+    internal func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return labels.count
+    }
+
+    // Creates the labels in the table view
+    internal func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "MyCell", for: indexPath as IndexPath)
+        cell.textLabel!.text = "\(labels[indexPath.row])"
+        cell.backgroundColor = darkModeToggle ? .black : .white
+        cell.textLabel?.textColor = darkModeToggle ? .white : .black
+        return cell
     }
     
     // Draws a pre-set rectangle in specified area; can/will change this to be more flexible and appear in more places
@@ -202,8 +284,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         searchController?.searchResultsUpdater = resultsViewController
         searchController?.searchBar.sizeToFit()
         definesPresentationContext = true
-        let subView = UIView(frame: CGRect(x: 0, y: 40, width: 350.0, height: 45.0))
-        subView.addSubview((searchController?.searchBar)!)
         scene.addSubview((searchController?.searchBar)!)
         searchController?.searchBar.sizeToFit()
         
@@ -249,6 +329,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         let xcoord: Double = Double(self.view.frame.size.width) * (indoorToggle && zoom > 19.0 ? 0.1 : 0.85)
         var index: Int = 0
         for button in buttons {
+            button.isHidden = false
             button.backgroundColor = darkModeToggle ? .darkGray : .white
             button.setElevation(ShadowElevation(rawValue: 6), for: .normal)
             button.frame = CGRect(x: Int(xcoord), y: Int(ycoord), width: 48, height: 48)

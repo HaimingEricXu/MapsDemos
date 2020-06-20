@@ -38,7 +38,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="TAm-Ge-ivJ">
-                                <rect key="frame" x="0.0" y="74" width="414" height="774"/>
+                                <rect key="frame" x="0.0" y="73" width="414" height="823"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </view>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Welcome" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="d20-dy-dkP">
@@ -60,7 +60,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="HcS-b3-A64" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="835" y="104"/>
+            <point key="canvasLocation" x="834.78260869565224" y="103.79464285714285"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="1nm-7f-IjH">
@@ -83,7 +83,7 @@
         <!--Street View Controller-->
         <scene sceneID="fxl-JL-SlK">
             <objects>
-                <viewController storyboardIdentifier="street_vc" id="a87-1J-B6Z" customClass="StreetViewController" customModule="PlacesMapsDemo" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="street_vc" id="a87-1J-B6Z" customClass="StreetViewController" customModule="GoogleProject" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="xdu-m0-h7P">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

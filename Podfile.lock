@@ -28,6 +28,11 @@ PODS:
     - MaterialComponents/Typography
     - MDFInternationalization
   - MaterialComponents/Availability (109.8.0)
+  - MaterialComponents/Banner (109.8.0):
+    - MaterialComponents/Availability
+    - MaterialComponents/Buttons
+    - MaterialComponents/Elevation
+    - MaterialComponents/Typography
   - MaterialComponents/BottomSheet (109.8.0):
     - MaterialComponents/Elevation
     - MaterialComponents/private/KeyboardWatcher
@@ -119,6 +124,7 @@ DEPENDENCIES:
   - GooglePlaces
   - MaterialComponents/ActionSheet
   - MaterialComponents/AppBar
+  - MaterialComponents/Banner
   - MaterialComponents/Buttons
 
 SPEC REPOS:
@@ -136,6 +142,6 @@ SPEC CHECKSUMS:
   MDFInternationalization: 010097556d6b09d2c4ea38e0820ea6d37be6a314
   MDFTextAccessibility: 85c09a1bd9c321f494348e632a25063bcda35a53
 
-PODFILE CHECKSUM: 30765f3fb2e9bd955a74ba7f6911efa29b59081f
+PODFILE CHECKSUM: eb779e46c796c676f1361ec8c5dfc53187632aae
 
 COCOAPODS: 1.9.3
