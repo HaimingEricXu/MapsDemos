@@ -21,30 +21,53 @@ import MaterialComponents.MaterialActionSheet
 
 class MainViewController: UIViewController, CLLocationManagerDelegate {
     
+    // Indicates if the traffic map can be seen
     private var trafficToggle: Bool = false
+    
+    // Indicates if the map should be in dark mode
     private var darkModeToggle: Bool = false
+    
+    // Indicates if indoor maps should be enabled
     private var indoorToggle: Bool = false
+    
+    // Displays images of a place rather than a simple marker
     private var imageToggle: Bool = false
+    
+    // The zoom of the camera
     private var zoom: Float = 10.0
+    
+    // The location of the camera, which is initially set at Sydney, Australia
     private var currentPlaceID: String = "ChIJP3Sa8ziYEmsRUKgyFmh9AQM"
     private var currentLat: Double = -33.86
     private var currentLong: Double = 151.20
+    
+    // The search bar and autocomplete screen view controller
     private var resultsViewController: GMSAutocompleteResultsViewController?
     private var searchController: UISearchController?
     private var resultView: UITextView?
+    
+    // Requests access to the user's location
     private let locationManager = CLLocationManager()
+    
+    // Map setup variables
     private var camera: GMSCameraPosition!
     private var mapView: GMSMapView!
     private var marker: GMSMarker!
+    
+    // List of all icons; useful for clearing the map
     private var icons = [GMSMarker]()
+    
+    // Simple UI elements
     @IBOutlet weak private var scene: UIView!
     @IBOutlet weak private var welcomeLabel: UILabel!
     
+    // Material design elements for UI
     private let actionSheet = MDCActionSheetController(title: "Options", message: "Pick a feature")
     private let optionsButton = MDCFloatingButton()
     private let zoomInButton = MDCFloatingButton()
     private let zoomOutButton = MDCFloatingButton()
 
+    // Sets up the initial screen and adds options to the action sheet
     override func viewDidLoad() {
         super.viewDidLoad()
         requestAuthorization()
@@ -67,6 +90,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                             self.currentLong = 151.21526
                                             self.zoom = 20.0
                                             self.refreshMap(newLoc: true)
+                                            self.refreshButtons()
                                             self.refreshScreen()
                                         })
         actionSheet.addAction(indoor)
@@ -102,12 +126,14 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         actionSheet.addAction(panoramicView)
     }
     
+    // Clears the map of all markers
     private func removeMarkers(){
         for mark in icons {
             mark.map = nil
         }
     }
     
+    // Opens up the StreetViewController for panorama viewing
     private func openPanorama() {
         let vc = storyboard?.instantiateViewController(identifier: "street_vc") as! StreetViewController?
         vc!.long = currentLong
@@ -117,6 +143,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         present(vc!, animated: true)
     }
     
+    // Finds the user's current location and sets currentLat, currentLong, and currentPlaceID
     private func setCurrentLocation() {
         let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
         placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
@@ -136,6 +163,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         })
     }
     
+    /* Changes the colors of the buttons, search bar, action sheet, and search results view controller (depending on whether or not dark mode is on)
+    * Adds the search bar to the screen
+    */
     private func refreshScreen() {
         self.view.backgroundColor = darkModeToggle ? .darkGray : .white
         self.scene.backgroundColor = darkModeToggle ? .darkGray : .white
@@ -173,6 +203,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         actionSheet.messageTextColor = darkModeToggle ? .white : .black
     }
     
+    // Sets up the functionality and location of the FABs
     private func refreshButtons() {
         let buttons = [optionsButton, zoomOutButton, zoomInButton]
         let iconImages = ["gear", "minus", "plus"]
@@ -180,17 +211,28 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         zoomInButton.addTarget(self, action: #selector(zoomInButtonTapped(zoomInButton:)), for: .touchUpInside)
         zoomOutButton.addTarget(self, action:
             #selector(zoomOutButtonTapped(zoomOutButton:)), for: .touchUpInside)
-        var ycoord: Int = 832
+        
+        /* The scaling factors are as follows:
+        *
+        * The x-coordinate of the FABs are constant. They are located at 0.85 times the width of the width of view controller (which will change depending on the device) OR 0.1 times the width if we are viewing in indoor mode, since the right hand side contains indoor floor level loggles
+        * The y-coordinate of the bottom-most button (options) will be located at 0.9 times the height of the view controller.
+        * To find the y-coordinate of the next button, decrement the y-coordinate by 0.07 times the height of the view controller. This value was found via trial/error.
+        */
+        var ycoord: Double = Double(self.view.frame.size.height) * 0.9
+        let xcoord: Double = Double(self.view.frame.size.width) * (indoorToggle && zoom > 19.0 ? 0.1 : 0.85)
+        var index: Int = 0
         for button in buttons {
             button.backgroundColor = darkModeToggle ? .darkGray : .white
             button.setElevation(ShadowElevation(rawValue: 6), for: .normal)
-            button.frame = CGRect(x: 348, y: ycoord, width: 48, height: 48)
-            button.setImage(UIImage(systemName: iconImages[(832 - ycoord) / 57]), for: .normal)
-            ycoord -= 57
+            button.frame = CGRect(x: Int(xcoord), y: Int(ycoord), width: 48, height: 48)
+            button.setImage(UIImage(systemName: iconImages[index]), for: .normal)
+            ycoord -= 0.07 * Double(self.view.frame.size.height)
+            index += 1
             self.view.addSubview(button)
         }
     }
     
+    // Refreshes the map, allowing changes activated by the toggle to be seen
     private func refreshMap(newLoc: Bool) {
         removeMarkers()
         if (newLoc) {
@@ -198,6 +240,10 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
             mapView = GMSMapView.map(withFrame: self.view.frame, camera: camera)
         }
         do {
+            // USE THE COMMENTED LINE BELOW IN THE FUTURE FOR CLOUD ACCESS
+            // let mapID = GMSMapID(identifier: "d9395ca70ad7dcb4")
+            // comment the rest of this out when cloud access is fixed
+            
             if let styleURL = Bundle.main.url(forResource: darkModeToggle ? "darkMode" : "standardMode", withExtension: "json") {
                 mapView.mapStyle = try GMSMapStyle(contentsOfFileURL: styleURL)
             } else {
@@ -249,6 +295,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         }
     }
     
+    // Opens the action menu
     @objc private func optionsButtonTapped(optionsButton: MDCFloatingButton){
         optionsButton.collapse(true) {
             optionsButton.expand(true, completion: nil)
@@ -256,6 +303,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         present(actionSheet, animated: true, completion: nil)
     }
     
+    // Zoom in, changes zoom variable
     @objc private func zoomInButtonTapped(zoomInButton: MDCFloatingButton){
         zoomInButton.collapse(true) {
             zoomInButton.expand(true, completion: nil)
@@ -263,8 +311,10 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         let zoomCamera = GMSCameraUpdate.zoom(by: 3.0)
         mapView.moveCamera(zoomCamera)
         zoom = min(mapView.camera.zoom, 20.0)
+        refreshButtons()
     }
     
+    // Zoom out, changes zoom variable
     @objc private func zoomOutButtonTapped(zoomOutButton: MDCFloatingButton){
         zoomOutButton.collapse(true) {
             zoomOutButton.expand(true, completion: nil)
@@ -272,14 +322,19 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         let zoomCamera = GMSCameraUpdate.zoom(by: -3.0)
         mapView.moveCamera(zoomCamera)
         zoom = max(mapView.camera.zoom, 0.0)
+        refreshButtons()
     }
     
+    // Requests the user's location
     private func requestAuthorization() {
         locationManager.requestWhenInUseAuthorization()
     }
 }
 
+// Extension for the search view controller and results view controller to interact
 extension MainViewController: GMSAutocompleteResultsViewControllerDelegate {
+    
+    // Once a location is confirmed, change currentLat and currentLong to reflect that location; updates the map to show that location
     func resultsController(_ resultsController: GMSAutocompleteResultsViewController,
                          didAutocompleteWith place: GMSPlace) {
         currentLat = place.coordinate.latitude
@@ -288,13 +343,17 @@ extension MainViewController: GMSAutocompleteResultsViewControllerDelegate {
         refreshMap(newLoc: true)
     }
     
+    // Default error message
     func resultsController(_ resultsController: GMSAutocompleteResultsViewController,
                          didFailAutocompleteWithError error: Error){
         print("Error: ", error.localizedDescription)
     }
 }
 
+// Extensions to make the marker images circular and translucent
 extension UIImage {
+    
+    // Sets whatever image to be in a circular frame
     var circleMask: UIImage? {
         let square = CGSize(width: min(size.width, size.height), height: min(size.width, size.height))
         let imageView = UIImageView(frame: .init(origin: .init(x: 0, y: 0), size: square))
@@ -315,6 +374,7 @@ extension UIImage {
         return UIGraphicsGetImageFromCurrentImageContext()
     }
     
+    // Sets opacity to given alpha value
     func opac(alpha: CGFloat) -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(size, false, scale)
         draw(at: .zero, blendMode: .normal, alpha: alpha)
