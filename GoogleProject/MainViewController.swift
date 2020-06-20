@@ -126,9 +126,11 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
                                                 self.polygonToggle = !self.polygonToggle
-                                                self.currentLong = -122.0
-                                                self.currentLat = 37.36
-                                                self.currentPlaceID = "ChIJc3v8avy1j4ARQCU7rBRXVnw"
+                                                if (polygonToggle) {
+                                                    self.currentLong = -122.0
+                                                    self.currentLat = 37.36
+                                                    self.currentPlaceID = "ChIJc3v8avy1j4ARQCU7rBRXVnw"
+                                                }
                                                 self.refreshMap(newLoc: true)
                                         })
         actionSheet.addAction(polygonEnable)
@@ -139,18 +141,18 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
                                                 self.refreshScreen()
                                         })
         actionSheet.addAction(currentLocation)
-        let panoramicView = MDCActionSheetAction(title: "Panoramic View",
-                                            image: UIImage(systemName: "Home"),
-                                            handler: {Void in
-                                                self.openPanorama()
-                                        })
-        actionSheet.addAction(panoramicView)
         let nearbyRecs = MDCActionSheetAction(title: "Nearby Recommendations",
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
                                                 self.showNearby()
                                         })
         actionSheet.addAction(nearbyRecs)
+        let panoramicView = MDCActionSheetAction(title: "Panoramic View",
+                                            image: UIImage(systemName: "Home"),
+                                            handler: {Void in
+                                                self.openPanorama()
+                                        })
+        actionSheet.addAction(panoramicView)
     }
     
     // Function to display a table view of nearby places; user selects one to view close-up
@@ -230,7 +232,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
         rect.add(CLLocationCoordinate2D(latitude: 37.36, longitude: -122.2))
         let polygon = GMSPolygon(path: rect)
         polygon.fillColor = UIColor(red: 0.25, green: 0, blue: 0, alpha: 0.05);
-        polygon.strokeColor = .black
+        polygon.strokeColor = darkModeToggle ? .white : .black
         polygon.strokeWidth = 2
         polygon.map = mapView
     }
@@ -276,6 +278,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
     * Adds the search bar to the screen
     */
     private func refreshScreen() {
+        // Sets up the search bar and results view controller
         self.view.backgroundColor = darkModeToggle ? .darkGray : .white
         self.scene.backgroundColor = darkModeToggle ? .darkGray : .white
         resultsViewController = GMSAutocompleteResultsViewController()
@@ -287,19 +290,26 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
         scene.addSubview((searchController?.searchBar)!)
         searchController?.searchBar.sizeToFit()
         
-        welcomeLabel.textColor = darkModeToggle ? .white : .black
+        // Redraws the polygon, if needed
+        if (polygonToggle) {
+            drawPolygon()
+        }
+        
+        // Changes the results view controller and search bar to be the right color
         resultsViewController?.tableCellSeparatorColor = darkModeToggle ? .black : .white
         resultsViewController?.tableCellBackgroundColor = darkModeToggle ? .black : .white
         resultsViewController?.primaryTextHighlightColor = darkModeToggle ? .white : .black
         resultsViewController?.primaryTextColor = darkModeToggle ? .white : .black
         resultsViewController?.secondaryTextColor = darkModeToggle ? .white : .black
-        
         searchController?.searchBar.barTintColor = darkModeToggle ? .black : .white
         searchController?.searchBar.tintColor = darkModeToggle ? .white : .black
         searchController?.searchBar.backgroundColor = darkModeToggle ? .black : .white
         if let textfield = searchController?.searchBar.value(forKey: "searchField") as? UITextField {
             textfield.textColor = darkModeToggle ? .white : .black
         }
+        
+        // Sets other view elements to the right colors
+        welcomeLabel.textColor = darkModeToggle ? .white : .black
         self.view.backgroundColor = darkModeToggle ? .black : .white
         actionSheet.actionTextColor = darkModeToggle ? .white : .black
         actionSheet.actionTintColor = darkModeToggle ? .black : .white
