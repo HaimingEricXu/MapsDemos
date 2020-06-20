@@ -33,6 +33,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     // Displays images of a place rather than a simple marker
     private var imageToggle: Bool = false
     
+    // Indicates if the map shows pre-set polygons
+    private var polygonToggle: Bool = false
+    
     // The zoom of the camera
     private var zoom: Float = 10.0
     
@@ -124,6 +127,30 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                                 self.openPanorama()
                                         })
         actionSheet.addAction(panoramicView)
+        let polygonEnable = MDCActionSheetAction(title: "Toggle Polygons",
+                                            image: UIImage(systemName: "Home"),
+                                            handler: {Void in
+                                                self.polygonToggle = !self.polygonToggle
+                                                self.currentLong = -122.0
+                                                self.currentLat = 37.36
+                                                self.currentPlaceID = "ChIJc3v8avy1j4ARQCU7rBRXVnw"
+                                                self.refreshMap(newLoc: true)
+                                        })
+        actionSheet.addAction(polygonEnable)
+    }
+    
+    // Draws a pre-set rectangle in specified area; can/will change this to be more flexible and appear in more places
+    private func drawPolygon() {
+        let rect = GMSMutablePath()
+        rect.add(CLLocationCoordinate2D(latitude: 37.36, longitude: -122.0))
+        rect.add(CLLocationCoordinate2D(latitude: 37.45, longitude: -122.0))
+        rect.add(CLLocationCoordinate2D(latitude: 37.45, longitude: -122.2))
+        rect.add(CLLocationCoordinate2D(latitude: 37.36, longitude: -122.2))
+        let polygon = GMSPolygon(path: rect)
+        polygon.fillColor = UIColor(red: 0.25, green: 0, blue: 0, alpha: 0.05);
+        polygon.strokeColor = .black
+        polygon.strokeWidth = 2
+        polygon.map = mapView
     }
     
     // Clears the map of all markers
@@ -243,7 +270,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
             // USE THE COMMENTED LINE BELOW IN THE FUTURE FOR CLOUD ACCESS
             // let mapID = GMSMapID(identifier: "d9395ca70ad7dcb4")
             // comment the rest of this out when cloud access is fixed
-            
             if let styleURL = Bundle.main.url(forResource: darkModeToggle ? "darkMode" : "standardMode", withExtension: "json") {
                 mapView.mapStyle = try GMSMapStyle(contentsOfFileURL: styleURL)
             } else {
@@ -254,6 +280,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         }
         mapView.settings.setAllGesturesEnabled(true)
         self.scene.addSubview(mapView)
+        if (polygonToggle) {
+            drawPolygon()
+        }
         marker = GMSMarker()
         icons.append(marker)
         mapView.isTrafficEnabled = trafficToggle
@@ -273,21 +302,25 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                             return
                                         }
                                         if let place = place {
+                                            if (place.photos != nil) {
                                                 let photoMetadata: GMSPlacePhotoMetadata = place.photos![0]
-                                            placesClient.loadPlacePhoto(photoMetadata, callback: { (photo, error) -> Void in
-                                                    if let error = error {
-                                                        print("Error loading photo metadata: \(error.localizedDescription)")
-                                                        return
-                                                    } else {
-                                                        let size = CGSize(width: 110, height: 110)
-                                                        UIGraphicsBeginImageContextWithOptions(size, false, 0.0);
-                                                        photo?.draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
-                                                        let newImage:UIImage = UIGraphicsGetImageFromCurrentImageContext()!
-                                                        UIGraphicsEndImageContext()
-                                                        let tempImage = newImage.opac(alpha: 0.7)
-                                                        self.marker.icon = tempImage?.circleMask
-                                                    }
-                                                })
+                                                placesClient.loadPlacePhoto(photoMetadata, callback: { (photo, error) -> Void in
+                                                        if let error = error {
+                                                            print("Error loading photo metadata: \(error.localizedDescription)")
+                                                            return
+                                                        } else {
+                                                            let size = CGSize(width: 110, height: 110)
+                                                            UIGraphicsBeginImageContextWithOptions(size, false, 0.0);
+                                                            photo?.draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
+                                                            let newImage:UIImage = UIGraphicsGetImageFromCurrentImageContext()!
+                                                            UIGraphicsEndImageContext()
+                                                            let tempImage = newImage.opac(alpha: 0.7)
+                                                            self.marker.icon = tempImage?.circleMask
+                                                        }
+                                                    })
+                                            } else {
+                                                self.marker.icon = UIImage(systemName: "default_marker.png")
+                                            }
                                         }
             })
         } else {
@@ -308,7 +341,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         zoomInButton.collapse(true) {
             zoomInButton.expand(true, completion: nil)
         }
-        let zoomCamera = GMSCameraUpdate.zoom(by: 3.0)
+        let zoomCamera = GMSCameraUpdate.zoom(by: 1.0)
         mapView.moveCamera(zoomCamera)
         zoom = min(mapView.camera.zoom, 20.0)
         refreshButtons()
@@ -319,7 +352,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         zoomOutButton.collapse(true) {
             zoomOutButton.expand(true, completion: nil)
         }
-        let zoomCamera = GMSCameraUpdate.zoom(by: -3.0)
+        let zoomCamera = GMSCameraUpdate.zoom(by: -1.0)
         mapView.moveCamera(zoomCamera)
         zoom = max(mapView.camera.zoom, 0.0)
         refreshButtons()
