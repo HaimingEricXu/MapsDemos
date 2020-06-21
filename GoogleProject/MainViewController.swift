@@ -126,7 +126,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
                                                 self.polygonToggle = !self.polygonToggle
-                                                if (polygonToggle) {
+                                                if (self.polygonToggle) {
                                                     self.currentLong = -122.0
                                                     self.currentLat = 37.36
                                                     self.currentPlaceID = "ChIJc3v8avy1j4ARQCU7rBRXVnw"
