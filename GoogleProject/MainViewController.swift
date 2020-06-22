@@ -37,6 +37,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
     // Indicates if the map shows pre-set polygons
     private var polygonToggle: Bool = false
     
+    // If on, only one toggle may be on at a time
+    private var independentToggle: Bool = false
+    
     // The zoom of the camera
     private var zoom: Float = 10.0
     
@@ -83,9 +86,24 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
         refreshMap(newLoc: true)
         refreshButtons()
         refreshScreen()
+        let independence = MDCActionSheetAction(title: "Toggle Independent Features",
+                                            image: UIImage(systemName: "Home"),
+                                            handler: {Void in
+                                                self.independentToggle = !self.independentToggle
+                                                if (self.independentToggle) {
+                                                    self.toggleOff()
+                                                }
+                                                self.refreshButtons()
+                                                self.refreshMap(newLoc: false)
+                                                self.refreshScreen()
+                                        })
+        actionSheet.addAction(independence)
         let traffic = MDCActionSheetAction(title: "Toggle Traffic Overlay",
                                            image: UIImage(systemName: "Home"),
                                            handler: {Void in
+                                            if (self.independentToggle) {
+                                                self.toggleOff()
+                                            }
                                             self.trafficToggle = !self.trafficToggle
                                             self.refreshMap(newLoc: false)
                                             self.refreshScreen()
@@ -94,6 +112,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
         let indoor = MDCActionSheetAction(title: "Toggle Indoor Map",
                                           image: UIImage(systemName: "Home"),
                                           handler: {Void in
+                                            if (self.independentToggle) {
+                                                self.toggleOff()
+                                            }
                                             self.indoorToggle = !self.indoorToggle
                                             if (self.indoorToggle) {
                                                 self.currentLat = -33.856689
@@ -108,6 +129,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
         let darkMode = MDCActionSheetAction(title: "Toggle Dark Mode",
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
+                                                if (self.independentToggle) {
+                                                    self.toggleOff()
+                                                }
                                                 self.darkModeToggle = !self.darkModeToggle
                                                 self.refreshMap(newLoc: false)
                                                 self.refreshScreen()
@@ -117,6 +141,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
         let imageMode = MDCActionSheetAction(title: "Toggle Images",
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
+                                                if (self.independentToggle) {
+                                                    self.toggleOff()
+                                                }
                                                 self.imageToggle = !self.imageToggle
                                                 self.refreshMap(newLoc: false)
                                                 self.refreshScreen()
@@ -125,6 +152,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
         let polygonEnable = MDCActionSheetAction(title: "Toggle Polygons",
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
+                                                if (self.independentToggle) {
+                                                    self.toggleOff()
+                                                }
                                                 self.polygonToggle = !self.polygonToggle
                                                 if (self.polygonToggle) {
                                                     self.currentLong = -122.0
@@ -132,19 +162,20 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
                                                     self.currentPlaceID = "ChIJc3v8avy1j4ARQCU7rBRXVnw"
                                                 }
                                                 self.refreshMap(newLoc: true)
+                                                self.refreshScreen()
                                         })
         actionSheet.addAction(polygonEnable)
         let currentLocation = MDCActionSheetAction(title: "Current Location",
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
                                                 self.setCurrentLocation()
-                                                self.refreshScreen()
                                         })
         actionSheet.addAction(currentLocation)
         let nearbyRecs = MDCActionSheetAction(title: "Nearby Recommendations",
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
                                                 self.showNearby()
+                                                self.refreshScreen()
                                         })
         actionSheet.addAction(nearbyRecs)
         let panoramicView = MDCActionSheetAction(title: "Panoramic View",
@@ -153,6 +184,18 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
                                                 self.openPanorama()
                                         })
         actionSheet.addAction(panoramicView)
+    }
+    
+    // Turns off all toggles
+    private func toggleOff() {
+        trafficToggle = false
+        imageToggle = false
+        indoorToggle = false
+        darkModeToggle = false
+        polygonToggle = false
+        /*refreshMap(newLoc: false)
+        refreshButtons()
+        refreshScreen()*/
     }
     
     // Function to display a table view of nearby places; user selects one to view close-up
@@ -270,6 +313,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
                     self.currentLong = place.coordinate.longitude
                     self.currentPlaceID = place.placeID!
                     self.refreshMap(newLoc: true)
+                    self.refreshScreen()
                 }
             }
         })
@@ -423,7 +467,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
         zoomInButton.collapse(true) {
             zoomInButton.expand(true, completion: nil)
         }
-        let zoomCamera = GMSCameraUpdate.zoom(by: 1.0)
+        let zoomCamera = GMSCameraUpdate.zoom(by: 2.0)
         mapView.moveCamera(zoomCamera)
         zoom = min(mapView.camera.zoom, 20.0)
         refreshButtons()
@@ -434,7 +478,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
         zoomOutButton.collapse(true) {
             zoomOutButton.expand(true, completion: nil)
         }
-        let zoomCamera = GMSCameraUpdate.zoom(by: -1.0)
+        let zoomCamera = GMSCameraUpdate.zoom(by: -2.0)
         mapView.moveCamera(zoomCamera)
         zoom = max(mapView.camera.zoom, 0.0)
         refreshButtons()
