@@ -336,7 +336,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
         * To find the y-coordinate of the next button, decrement the y-coordinate by 0.07 times the height of the view controller. This value was found via trial/error.
         */
         var ycoord: Double = Double(self.view.frame.size.height) * 0.9
-        let xcoord: Double = Double(self.view.frame.size.width) * (indoorToggle && zoom > 19.0 ? 0.1 : 0.85)
+        let xcoord: Double = Double(self.view.frame.size.width) * (indoorToggle && zoom > 16.0 ? 0.1 : 0.85)
         var index: Int = 0
         for button in buttons {
             button.isHidden = false
