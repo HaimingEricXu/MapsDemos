@@ -202,6 +202,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
         self.currentPlaceID = loc.placeID!
         self.currentLong = loc.coordinate.longitude
         self.currentLat = loc.coordinate.latitude
+        
         // zoom needs to be high, as these locations tend to be close
         zoom = 20.0
         refreshMap(newLoc: true)
@@ -353,22 +354,12 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
     // Refreshes the map, allowing changes activated by the toggle to be seen
     private func refreshMap(newLoc: Bool) {
         removeMarkers()
+        let mapID = darkModeToggle ? GMSMapID(identifier: "d9395ca70ad7dcb4") : GMSMapID(identifier: "209da1a703f62076")
         if (newLoc) {
             camera = GMSCameraPosition.camera(withLatitude: currentLat, longitude: currentLong, zoom: zoom)
-            mapView = GMSMapView.map(withFrame: self.view.frame, camera: camera)
+            mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
         }
-        do {
-            // USE THE COMMENTED LINE BELOW IN THE FUTURE FOR CLOUD ACCESS
-            // let mapID = GMSMapID(identifier: "d9395ca70ad7dcb4")
-            // comment the rest of this out when cloud access is fixed
-            if let styleURL = Bundle.main.url(forResource: darkModeToggle ? "darkMode" : "standardMode", withExtension: "json") {
-                mapView.mapStyle = try GMSMapStyle(contentsOfFileURL: styleURL)
-            } else {
-                NSLog("Unable to find style.json")
-            }
-        } catch {
-            NSLog("One or more of the map styles failed to load. \(error)")
-        }
+        mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
         mapView.settings.setAllGesturesEnabled(true)
         self.scene.addSubview(mapView)
         if (polygonToggle) {
