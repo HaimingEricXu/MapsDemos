@@ -187,7 +187,8 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                     self.nearbyLocationIDs.add(loc.place.placeID!)
                 }
                 for x in self.nearbyLocationMarkers {
-                    self.viewImage(placeLoc: self.nearbyLocationIDs[counter] as! String, localMarker: x, tapped: false)
+                    let temp = LocationImageGenerator()
+                    temp.viewImage(placeLoc: self.nearbyLocationIDs[counter] as! String, localMarker: x, tapped: false)
                     x.map = self.mapView
                     counter += 1
                 }
@@ -212,20 +213,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
             }
         })
         definesPresentationContext = true
-    }
-    
-    // Draws a pre-set rectangle in specified area; can/will change this to be more flexible and appear in more places
-    private func drawPolygon() {
-        let rect = GMSMutablePath()
-        rect.add(CLLocationCoordinate2D(latitude: 37.36, longitude: -122.0))
-        rect.add(CLLocationCoordinate2D(latitude: 37.45, longitude: -122.0))
-        rect.add(CLLocationCoordinate2D(latitude: 37.45, longitude: -122.2))
-        rect.add(CLLocationCoordinate2D(latitude: 37.36, longitude: -122.2))
-        let polygon = GMSPolygon(path: rect)
-        polygon.fillColor = UIColor(red: 0.25, green: 0, blue: 0, alpha: 0.05);
-        polygon.strokeColor = darkModeToggle ? .white : .black
-        polygon.strokeWidth = 2
-        polygon.map = mapView
     }
     
     // Opens up the StreetViewController for panorama viewing
@@ -414,45 +401,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         refreshButtons()
     }
     
-    // Sets a marker's icon to a place's image, if it has one
-    private func viewImage(placeLoc: String, localMarker: GMSMarker, tapped: Bool = true) {
-        let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
-        let fields: GMSPlaceField = GMSPlaceField(rawValue: UInt(GMSPlaceField.photos.rawValue))!
-        placesClient.fetchPlace(fromPlaceID: String(placeLoc), placeFields: fields,
-                                 sessionToken: nil, callback: {
-                                    (place: GMSPlace?, error: Error?) in
-                                    if let error = error {
-                                        print("An error occurred: \(error.localizedDescription)")
-                                        return
-                                    }
-                                    if let place = place {
-                                        if (place.photos != nil) {
-                                            let photoMetadata: GMSPlacePhotoMetadata = place.photos![0]
-                                            placesClient.loadPlacePhoto(photoMetadata, callback: { (photo, error) -> Void in
-                                                    if let error = error {
-                                                        print("Error loading photo metadata: \(error.localizedDescription)")
-                                                        return
-                                                    } else {
-                                                        let size = CGSize(width: 110, height: 110)
-                                                        UIGraphicsBeginImageContextWithOptions(size, false, 0.0);
-                                                        photo?.draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
-                                                        let newImage:UIImage = UIGraphicsGetImageFromCurrentImageContext()!
-                                                        UIGraphicsEndImageContext()
-                                                        let tempImage = newImage.opac(alpha: 0.7)
-                                                        localMarker.icon = tempImage?.circleMask
-                                                        if (tapped) {
-                                                            self.imageOn = true
-                                                        }
-                                                    }
-                                                })
-                                        } else {
-                                            localMarker.icon = UIImage(systemName: "eye.slash.fill")
-                                            localMarker.icon?.withTintColor(.black)
-                                        }
-                                    }
-        })
-    }
-    
     // Requests the user's location
     private func requestAuthorization() {
         locationManager.requestWhenInUseAuthorization()
@@ -512,11 +460,14 @@ extension UIImage {
     }
 }
 
+// Allows the location icons to be clicked
 extension MainViewController: GMSMapViewDelegate {
     
     @objc(mapView:didTapMarker:) func mapView(_: GMSMapView, didTap marker: GMSMarker) -> Bool {
         if (!imageOn) {
-            viewImage(placeLoc: currentPlaceID, localMarker: marker)
+            imageOn = true
+            let temp = LocationImageGenerator()
+            temp.viewImage(placeLoc: currentPlaceID, localMarker: marker)
         } else {
             self.marker.icon = UIImage(systemName: "default_marker.png")
             imageOn = false

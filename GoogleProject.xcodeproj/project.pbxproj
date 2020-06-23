@@ -18,6 +18,8 @@
 		96764DC924915F2700B4B0B3 /* GoogleProjectUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96764DC824915F2700B4B0B3 /* GoogleProjectUITests.swift */; };
 		96BE1A00249D4B890071C69F /* StreetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96BE19FF249D4B890071C69F /* StreetViewController.swift */; };
 		96EC1543249BF61400F59A9C /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EC1542249BF61400F59A9C /* MainViewController.swift */; };
+		96F53C5E24A269A400355240 /* LocationImageGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F53C5D24A269A400355240 /* LocationImageGenerator.swift */; };
+		96F53C6224A26C0A00355240 /* OverlayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F53C6124A26C0A00355240 /* OverlayController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +57,8 @@
 		96764DCA24915F2700B4B0B3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		96BE19FF249D4B890071C69F /* StreetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreetViewController.swift; sourceTree = "<group>"; };
 		96EC1542249BF61400F59A9C /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
+		96F53C5D24A269A400355240 /* LocationImageGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationImageGenerator.swift; sourceTree = "<group>"; };
+		96F53C6124A26C0A00355240 /* OverlayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayController.swift; sourceTree = "<group>"; };
 		B1764BFB9789A36D696C5596 /* Pods-GoogleProject.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GoogleProject.debug.xcconfig"; path = "Target Support Files/Pods-GoogleProject/Pods-GoogleProject.debug.xcconfig"; sourceTree = "<group>"; };
 		D919181953EF02E6A334D7EB /* Pods-GoogleProject.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GoogleProject.release.xcconfig"; path = "Target Support Files/Pods-GoogleProject/Pods-GoogleProject.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -121,9 +125,11 @@
 			children = (
 				96764DA624915F2400B4B0B3 /* AppDelegate.swift */,
 				96764DA824915F2400B4B0B3 /* SceneDelegate.swift */,
-				96764DAA24915F2400B4B0B3 /* WelcomeViewController.swift */,
+				96F53C5D24A269A400355240 /* LocationImageGenerator.swift */,
 				96EC1542249BF61400F59A9C /* MainViewController.swift */,
 				96BE19FF249D4B890071C69F /* StreetViewController.swift */,
+				96F53C6124A26C0A00355240 /* OverlayController.swift */,
+				96764DAA24915F2400B4B0B3 /* WelcomeViewController.swift */,
 				96764DAC24915F2400B4B0B3 /* Main.storyboard */,
 				96764DAF24915F2700B4B0B3 /* Assets.xcassets */,
 				96764DB124915F2700B4B0B3 /* LaunchScreen.storyboard */,
@@ -355,6 +361,8 @@
 				96764DA724915F2400B4B0B3 /* AppDelegate.swift in Sources */,
 				96764DA924915F2400B4B0B3 /* SceneDelegate.swift in Sources */,
 				96EC1543249BF61400F59A9C /* MainViewController.swift in Sources */,
+				96F53C5E24A269A400355240 /* LocationImageGenerator.swift in Sources */,
+				96F53C6224A26C0A00355240 /* OverlayController.swift in Sources */,
 				96BE1A00249D4B890071C69F /* StreetViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
