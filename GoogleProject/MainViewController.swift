@@ -20,7 +20,6 @@ import MaterialComponents.MaterialButtons
 import MaterialComponents.MaterialActionSheet
 import MaterialComponents.MaterialBanner
 
-
 // map feature -- different features
 class MainViewController: UIViewController, CLLocationManagerDelegate, UITableViewDelegate, UITableViewDataSource {
     
@@ -97,8 +96,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
                                                 self.refreshMap(newLoc: false)
                                                 self.refreshScreen()
                                         })
-        actionSheet.addAction(independence)
-        // EDIT THIS TO NOT GO BACK TO THE ORIGINAL ICON
         let traffic = MDCActionSheetAction(title: "Toggle Traffic Overlay",
                                            image: UIImage(systemName: "Home"),
                                            handler: {Void in
@@ -109,8 +106,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
                                             self.refreshMap(newLoc: false)
                                             self.refreshButtons()
                                             self.refreshScreen()
-                                            })
-        actionSheet.addAction(traffic)
+                                        })
         let indoor = MDCActionSheetAction(title: "Toggle Indoor Map",
                                           image: UIImage(systemName: "Home"),
                                           handler: {Void in
@@ -127,7 +123,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
                                             self.refreshButtons()
                                             self.refreshScreen()
                                         })
-        actionSheet.addAction(indoor)
         let nearbyRecs = MDCActionSheetAction(title: "Nearby Recommendations",
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
@@ -135,14 +130,15 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
                                                 self.refreshButtons()
                                                 self.refreshScreen()
                                         })
-        actionSheet.addAction(nearbyRecs)
         let panoramicView = MDCActionSheetAction(title: "Panoramic View",
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
                                                 self.openPanorama()
                                         })
-        actionSheet.addAction(panoramicView)
-        
+        let actions: NSMutableArray = [independence, traffic, indoor, nearbyRecs, panoramicView]
+        for a in actions {
+            actionSheet.addAction(a as! MDCActionSheetAction)
+        }
         // find points of interest in this circle
         // drag the circle to include POIs within the circle
     }
@@ -308,7 +304,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
     
     // Sets up the functionality and location of the FABs
     private func refreshButtons() {
-        // 27
         darkModeButton.frame = CGRect(x: self.view.frame.size.width - 50, y: self.view.frame.size.height - 868, width: 50, height: 50)
         if (!darkModeToggle) {
             darkModeButton.setImage(UIImage(systemName: "moon.stars.fill"), for: .normal)
@@ -360,7 +355,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
             camera = GMSCameraPosition.camera(withLatitude: currentLat, longitude: currentLong, zoom: zoom)
             mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
         }
-        mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
         self.mapView.delegate = self
         mapView.settings.setAllGesturesEnabled(true)
         self.scene.addSubview(mapView)
