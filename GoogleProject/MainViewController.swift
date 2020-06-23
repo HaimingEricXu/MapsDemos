@@ -78,6 +78,8 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
     private let currentLocButton = MDCFloatingButton()
 
     // Sets up the initial screen and adds options to the action sheet
+    
+    // FIX ZOOM BUG AFTER ZOOMING OUT AND THEN CLICKING DARK MODE
     override func viewDidLoad() {
         super.viewDidLoad()
         requestAuthorization()
@@ -96,6 +98,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
                                                 self.refreshScreen()
                                         })
         actionSheet.addAction(independence)
+        // EDIT THIS TO NOT GO BACK TO THE ORIGINAL ICON
         let traffic = MDCActionSheetAction(title: "Toggle Traffic Overlay",
                                            image: UIImage(systemName: "Home"),
                                            handler: {Void in
@@ -104,6 +107,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
                                             }
                                             self.trafficToggle = !self.trafficToggle
                                             self.refreshMap(newLoc: false)
+                                            self.refreshButtons()
                                             self.refreshScreen()
                                             })
         actionSheet.addAction(traffic)
@@ -128,6 +132,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
                                                 self.showNearby()
+                                                self.refreshButtons()
                                                 self.refreshScreen()
                                         })
         actionSheet.addAction(nearbyRecs)
@@ -143,10 +148,11 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
     }
     
     @objc func darkModeActivate(sender: UIButton!) {
+        let tempToggle: Bool = !darkModeToggle
         if (independentToggle) {
             toggleOff()
         }
-        darkModeToggle = !darkModeToggle
+        darkModeToggle = tempToggle
         refreshMap(newLoc: false)
         refreshScreen()
         refreshButtons()
@@ -256,6 +262,13 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
     * Adds the search bar to the screen
     */
     private func refreshScreen() {
+        if (independentToggle) {
+            let image = UIImage(systemName: "1.magnifyingglass")
+            let imageView = UIImageView(image: image!)
+            imageView.frame = CGRect(x: self.view.frame.size.width - 57, y: self.view.frame.size.height - 851, width: 20, height: 20)
+            imageView.tintColor = darkModeToggle ? .white : .red
+            self.view.addSubview(imageView)
+        }
         // Sets up the search bar and results view controller
         self.view.backgroundColor = darkModeToggle ? .darkGray : .white
         self.scene.backgroundColor = darkModeToggle ? .darkGray : .white
@@ -295,7 +308,8 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
     
     // Sets up the functionality and location of the FABs
     private func refreshButtons() {
-        darkModeButton.frame = CGRect(x: self.view.frame.size.width - 50, y: 27, width: 50, height: 50)
+        // 27
+        darkModeButton.frame = CGRect(x: self.view.frame.size.width - 50, y: self.view.frame.size.height - 868, width: 50, height: 50)
         if (!darkModeToggle) {
             darkModeButton.setImage(UIImage(systemName: "moon.stars.fill"), for: .normal)
         } else {
@@ -504,7 +518,8 @@ extension MainViewController: GMSMapViewDelegate {
                                                         }
                                                     })
                                             } else {
-                                                self.marker.icon = UIImage(systemName: "default_marker.png")
+                                                self.marker.icon = UIImage(systemName: "eye.slash.fill")
+                                                self.marker.icon?.withTintColor(.black)
                                             }
                                         }
             })
