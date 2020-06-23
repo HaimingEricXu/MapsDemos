@@ -21,7 +21,7 @@ import MaterialComponents.MaterialActionSheet
 import MaterialComponents.MaterialBanner
 
 // map feature -- different features
-class MainViewController: UIViewController, CLLocationManagerDelegate, UITableViewDelegate, UITableViewDataSource {
+class MainViewController: UIViewController, CLLocationManagerDelegate {
     
     // Indicates if the traffic map can be seen
     private var trafficToggle: Bool = false // encapsulate into TrafficFeatureClass, pass in the map view; toggle on this class
@@ -59,15 +59,15 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
     private var mapView: GMSMapView!
     private var marker: GMSMarker = GMSMarker()
     
-    // Variables for nearby recommendations feature
-    private let nearby: NSMutableArray = []
-    private let labels: NSMutableArray = []
-    private var likelyLocationsTable: UITableView!
-    
     // Simple UI elements
     @IBOutlet weak private var scene: UIView!
     @IBOutlet weak private var welcomeLabel: UILabel!
-    var darkModeButton = UIButton()
+    private var darkModeButton = UIButton()
+    private var clearButton = UIButton()
+    
+    // Marker storage arrays
+    var nearbyLocationMarkers = [GMSMarker]()
+    let nearbyLocationIDs: NSMutableArray = []
     
     // Material design elements for UI
     private let actionSheet = MDCActionSheetController(title: "Options", message: "Pick a feature")
@@ -77,8 +77,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
     private let currentLocButton = MDCFloatingButton()
 
     // Sets up the initial screen and adds options to the action sheet
-    
-    // FIX ZOOM BUG AFTER ZOOMING OUT AND THEN CLICKING DARK MODE
     override func viewDidLoad() {
         super.viewDidLoad()
         requestAuthorization()
@@ -140,7 +138,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
             actionSheet.addAction(a as! MDCActionSheetAction)
         }
         // find points of interest in this circle
-        // drag the circle to include POIs within the circle
+        // drag the circle to include POIs within the circle (ADVANCED FEATURE)
     }
     
     @objc func darkModeActivate(sender: UIButton!) {
@@ -149,9 +147,15 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
             toggleOff()
         }
         darkModeToggle = tempToggle
-        refreshMap(newLoc: false)
+        refreshMap(newLoc: false, darkModeSwitch: true)
         refreshScreen()
         refreshButtons()
+    }
+    
+    @objc func clearAll(sender: UIButton!) {
+        for x in nearbyLocationMarkers {
+            x.map = nil
+        }
     }
     
     // Turns off all toggles
@@ -163,13 +167,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
     
     // Function to display a table view of nearby places; user selects one to view close-up
     private func showNearby() {
-        let buttons = [optionsButton, zoomOutButton, zoomInButton, darkModeButton, currentLocButton]
-        for button in buttons {
-            button.isHidden = true
-        }
-        let barHeight: CGFloat = UIApplication.shared.statusBarFrame.size.height
-        let displayWidth: CGFloat = self.view.frame.width
-        let displayHeight: CGFloat = self.view.frame.height
         let current: GMSPlacesClient = GMSPlacesClient.shared()
         current.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
             if let error = error {
@@ -177,57 +174,44 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
                 return
             }
             if let placeLikelihoodList = placeLikelihoodList {
-                self.nearby.removeAllObjects()
-                self.labels.removeAllObjects()
+                var counter: Int = 0
+                var first: Bool = true
                 for loc in placeLikelihoodList.likelihoods {
-                    self.nearby.add(loc.place as GMSPlace)
-                    self.labels.add(loc.place.name as Any)
+                    if (first) {
+                        first = false
+                        continue
+                    }
+                    let temp: GMSMarker = GMSMarker()
+                    temp.position = CLLocationCoordinate2D(latitude: loc.place.coordinate.latitude, longitude: loc.place.coordinate.longitude)
+                    self.nearbyLocationMarkers.append(temp)
+                    self.nearbyLocationIDs.add(loc.place.placeID!)
                 }
-                self.likelyLocationsTable = UITableView(frame: CGRect(x: 0, y: 0, width: displayWidth, height: displayHeight - barHeight))
-                self.likelyLocationsTable.backgroundColor = self.darkModeToggle ? .black : .white
-                self.likelyLocationsTable.sectionIndexTrackingBackgroundColor = self.darkModeToggle ? .black : .white
-                self.likelyLocationsTable.tintColor = self.darkModeToggle ? .black : .white
-                self.likelyLocationsTable.separatorColor = self.darkModeToggle ? .white : .black
-                self.likelyLocationsTable.sectionIndexColor = self.darkModeToggle ? .white : .black
-                self.likelyLocationsTable.sectionIndexBackgroundColor = self.darkModeToggle ? .black : .white
-                self.likelyLocationsTable.register(UITableViewCell.self, forCellReuseIdentifier: "MyCell")
-                self.likelyLocationsTable.dataSource = self
-                self.likelyLocationsTable.delegate = self
-                for view in self.scene.subviews {
-                    view.removeFromSuperview()
+                for x in self.nearbyLocationMarkers {
+                    self.viewImage(placeLoc: self.nearbyLocationIDs[counter] as! String, localMarker: x, tapped: false)
+                    x.map = self.mapView
+                    counter += 1
                 }
-                self.scene.addSubview(self.likelyLocationsTable)
+                let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
+                placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
+                    if let error = error {
+                        print("Current Place error: \(error.localizedDescription)")
+                        return
+                    }
+                    if let placeLikelihoodList = placeLikelihoodList {
+                        let place = placeLikelihoodList.likelihoods.first?.place
+                        if let place = place {
+                            self.currentLat = place.coordinate.latitude
+                            self.currentLong = place.coordinate.longitude
+                            self.currentPlaceID = place.placeID!
+                            self.zoom = 20
+                            self.refreshMap(newLoc: true)
+                            self.refreshScreen()
+                        }
+                    }
+                })
             }
         })
         definesPresentationContext = true
-    }
-    
-    // Once a location is selected, set current location variables and show it on the map
-    internal func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let loc: GMSPlace = nearby[indexPath.row] as! GMSPlace
-        self.currentPlaceID = loc.placeID!
-        self.currentLong = loc.coordinate.longitude
-        self.currentLat = loc.coordinate.latitude
-        
-        // zoom needs to be high, as these locations tend to be close
-        zoom = 20.0
-        refreshMap(newLoc: true)
-        refreshButtons()
-        refreshScreen()
-    }
-
-    // Helper function to list the correct number of labels in the table view
-    internal func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return labels.count
-    }
-
-    // Creates the labels in the table view
-    internal func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "MyCell", for: indexPath as IndexPath)
-        cell.textLabel!.text = "\(labels[indexPath.row])"
-        cell.backgroundColor = darkModeToggle ? .black : .white
-        cell.textLabel?.textColor = darkModeToggle ? .white : .black
-        return cell
     }
     
     // Draws a pre-set rectangle in specified area; can/will change this to be more flexible and appear in more places
@@ -305,14 +289,17 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
     // Sets up the functionality and location of the FABs
     private func refreshButtons() {
         darkModeButton.frame = CGRect(x: self.view.frame.size.width - 50, y: self.view.frame.size.height - 868, width: 50, height: 50)
-        if (!darkModeToggle) {
-            darkModeButton.setImage(UIImage(systemName: "moon.stars.fill"), for: .normal)
-        } else {
-            darkModeButton.setImage(UIImage(systemName: "sun.min.fill"), for: .normal)
-        }
+        darkModeButton.setImage(UIImage(systemName: darkModeToggle ? "sun.min.fill" : "moon.stars.fill"), for: .normal)
         darkModeButton.tintColor = darkModeToggle ? .yellow : .blue
         darkModeButton.addTarget(self, action: #selector(darkModeActivate), for: .touchUpInside)
         self.view.addSubview(darkModeButton)
+        
+        clearButton.frame = CGRect(x: 0, y: self.view.frame.size.height - 868, width: 100, height: 50)
+        clearButton.setTitleColor(darkModeToggle ? .white : .blue, for: .normal)
+        clearButton.setTitle("Clear All", for: .normal)
+        clearButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
+        self.view.addSubview(clearButton)
+        
         let buttons = [optionsButton, zoomOutButton, zoomInButton, currentLocButton]
         let iconImages = ["gear", "minus", "plus", "location"]
         optionsButton.addTarget(self, action: #selector(optionsButtonTapped(optionsButton:)), for: .touchUpInside)
@@ -345,7 +332,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
     }
     
     // Refreshes the map, allowing changes activated by the toggle to be seen
-    private func refreshMap(newLoc: Bool) {
+    private func refreshMap(newLoc: Bool, darkModeSwitch: Bool = false) {
         if (newLoc) {
             imageOn = false
             marker.icon = UIImage(systemName: "default_marker.png")
@@ -353,6 +340,13 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
         let mapID = darkModeToggle ? GMSMapID(identifier: "d9395ca70ad7dcb4") : GMSMapID(identifier: "209da1a703f62076")
         if (newLoc) {
             camera = GMSCameraPosition.camera(withLatitude: currentLat, longitude: currentLong, zoom: zoom)
+            if (mapView == nil) {
+                mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
+            } else {
+                mapView.animate(to: camera)
+            }
+        }
+        if (darkModeSwitch) {
             mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
         }
         self.mapView.delegate = self
@@ -396,7 +390,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
         refreshButtons()
     }
     
-    // ANIMATE THIS PROCESS
     @objc private func goToCurrent(currentLocButton: MDCFloatingButton){
         currentLocButton.collapse(true) {
             currentLocButton.expand(true, completion: nil)
@@ -419,6 +412,45 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, UITableVi
             }
         })
         refreshButtons()
+    }
+    
+    // Sets a marker's icon to a place's image, if it has one
+    private func viewImage(placeLoc: String, localMarker: GMSMarker, tapped: Bool = true) {
+        let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
+        let fields: GMSPlaceField = GMSPlaceField(rawValue: UInt(GMSPlaceField.photos.rawValue))!
+        placesClient.fetchPlace(fromPlaceID: String(placeLoc), placeFields: fields,
+                                 sessionToken: nil, callback: {
+                                    (place: GMSPlace?, error: Error?) in
+                                    if let error = error {
+                                        print("An error occurred: \(error.localizedDescription)")
+                                        return
+                                    }
+                                    if let place = place {
+                                        if (place.photos != nil) {
+                                            let photoMetadata: GMSPlacePhotoMetadata = place.photos![0]
+                                            placesClient.loadPlacePhoto(photoMetadata, callback: { (photo, error) -> Void in
+                                                    if let error = error {
+                                                        print("Error loading photo metadata: \(error.localizedDescription)")
+                                                        return
+                                                    } else {
+                                                        let size = CGSize(width: 110, height: 110)
+                                                        UIGraphicsBeginImageContextWithOptions(size, false, 0.0);
+                                                        photo?.draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
+                                                        let newImage:UIImage = UIGraphicsGetImageFromCurrentImageContext()!
+                                                        UIGraphicsEndImageContext()
+                                                        let tempImage = newImage.opac(alpha: 0.7)
+                                                        localMarker.icon = tempImage?.circleMask
+                                                        if (tapped) {
+                                                            self.imageOn = true
+                                                        }
+                                                    }
+                                                })
+                                        } else {
+                                            localMarker.icon = UIImage(systemName: "eye.slash.fill")
+                                            localMarker.icon?.withTintColor(.black)
+                                        }
+                                    }
+        })
     }
     
     // Requests the user's location
@@ -483,40 +515,8 @@ extension UIImage {
 extension MainViewController: GMSMapViewDelegate {
     
     @objc(mapView:didTapMarker:) func mapView(_: GMSMapView, didTap marker: GMSMarker) -> Bool {
-        let fields: GMSPlaceField = GMSPlaceField(rawValue: UInt(GMSPlaceField.photos.rawValue))!
-        let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
         if (!imageOn) {
-            placesClient.fetchPlace(fromPlaceID: String(currentPlaceID), placeFields: fields,
-                                     sessionToken: nil, callback: {
-                                        (place: GMSPlace?, error: Error?) in
-                                        if let error = error {
-                                            print("An error occurred: \(error.localizedDescription)")
-                                            return
-                                        }
-                                        if let place = place {
-                                            if (place.photos != nil) {
-                                                let photoMetadata: GMSPlacePhotoMetadata = place.photos![0]
-                                                placesClient.loadPlacePhoto(photoMetadata, callback: { (photo, error) -> Void in
-                                                        if let error = error {
-                                                            print("Error loading photo metadata: \(error.localizedDescription)")
-                                                            return
-                                                        } else {
-                                                            let size = CGSize(width: 110, height: 110)
-                                                            UIGraphicsBeginImageContextWithOptions(size, false, 0.0);
-                                                            photo?.draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
-                                                            let newImage:UIImage = UIGraphicsGetImageFromCurrentImageContext()!
-                                                            UIGraphicsEndImageContext()
-                                                            let tempImage = newImage.opac(alpha: 0.7)
-                                                            self.marker.icon = tempImage?.circleMask
-                                                            self.imageOn = true
-                                                        }
-                                                    })
-                                            } else {
-                                                self.marker.icon = UIImage(systemName: "eye.slash.fill")
-                                                self.marker.icon?.withTintColor(.black)
-                                            }
-                                        }
-            })
+            viewImage(placeLoc: currentPlaceID, localMarker: marker)
         } else {
             self.marker.icon = UIImage(systemName: "default_marker.png")
             imageOn = false
