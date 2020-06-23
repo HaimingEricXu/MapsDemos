@@ -142,6 +142,10 @@ SPEC CHECKSUMS:
   MDFInternationalization: 010097556d6b09d2c4ea38e0820ea6d37be6a314
   MDFTextAccessibility: 85c09a1bd9c321f494348e632a25063bcda35a53
 
+<<<<<<< HEAD
 PODFILE CHECKSUM: 872a6f9fa4e0bf5d4899a3e04a59feed1ffc4ec9
+=======
+PODFILE CHECKSUM: d0c67d8a8e859cf41c70c7fe2c2306b790fcdb39
+>>>>>>> testing
 
 COCOAPODS: 1.9.3
