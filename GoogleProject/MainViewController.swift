@@ -377,6 +377,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         refreshButtons()
     }
     
+    // Moves the view to the phone's current location
     @objc private func goToCurrent(currentLocButton: MDCFloatingButton){
         currentLocButton.collapse(true) {
             currentLocButton.expand(true, completion: nil)
