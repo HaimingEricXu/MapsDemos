@@ -41,6 +41,12 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     // The zoom of the camera
     private var zoom: Float = 10.0
     
+    // Indicates if the map is locked or not; unlocked through a button
+    private var lock: Bool = false
+    
+    // The general overlay controller for overlay-related features
+    private var overlay = OverlayController()
+    
     // The location of the camera, which is initially set at Sydney, Australia
     private var currentPlaceID: String = "ChIJP3Sa8ziYEmsRUKgyFmh9AQM"
     private var currentLat: Double = -33.86
@@ -63,11 +69,11 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     @IBOutlet weak private var scene: UIView!
     @IBOutlet weak private var welcomeLabel: UILabel!
     private var darkModeButton = UIButton()
-    private var clearButton = UIButton()
+    private var generalButton = UIButton()
     
     // Marker storage arrays
-    var nearbyLocationMarkers = [GMSMarker]()
-    let nearbyLocationIDs: NSMutableArray = []
+    private var nearbyLocationMarkers = [GMSMarker]()
+    private let nearbyLocationIDs: NSMutableArray = []
     
     // Material design elements for UI
     private let actionSheet = MDCActionSheetController(title: "Options", message: "Pick a feature")
@@ -133,12 +139,25 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                             handler: {Void in
                                                 self.openPanorama()
                                         })
-        let actions: NSMutableArray = [independence, traffic, indoor, nearbyRecs, panoramicView]
+        let radiusSearch = MDCActionSheetAction(title: "Radius Search",
+                                            image: UIImage(systemName: "Home"),
+                                            handler: {Void in
+                                                self.radius()
+                                                let zoomCamera = GMSCameraUpdate.zoom(by: 13.0 - self.zoom)
+                                                self.zoom = 13.0
+                                                self.mapView.moveCamera(zoomCamera)
+                                                self.refreshButtons()
+                                                self.refreshMap(newLoc: false)
+                                                self.refreshScreen()
+                                        })
+        let actions: NSMutableArray = [independence, traffic, indoor, nearbyRecs, panoramicView, radiusSearch]
         for a in actions {
             actionSheet.addAction(a as! MDCActionSheetAction)
         }
-        // find points of interest in this circle
-        // drag the circle to include POIs within the circle (ADVANCED FEATURE)
+    }
+    
+    private func radius() {
+        overlay.drawCircle(mapView: mapView, darkModeToggle: darkModeToggle, lat: currentLat, long: currentLong)
     }
     
     @objc func darkModeActivate(sender: UIButton!) {
@@ -152,10 +171,20 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         refreshButtons()
     }
     
+    // Clears all icon images and overlays
     @objc func clearAll(sender: UIButton!) {
         for x in nearbyLocationMarkers {
             x.map = nil
         }
+        overlay.clear()
+    }
+    
+    // Unlocks the screen
+    @objc func exitLock(sender: UIButton!) {
+        lock = false
+        refreshButtons()
+        refreshMap(newLoc: false)
+        refreshScreen()
     }
     
     // Turns off all toggles
@@ -281,11 +310,15 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         darkModeButton.addTarget(self, action: #selector(darkModeActivate), for: .touchUpInside)
         self.view.addSubview(darkModeButton)
         
-        clearButton.frame = CGRect(x: 0, y: self.view.frame.size.height - 868, width: 100, height: 50)
-        clearButton.setTitleColor(darkModeToggle ? .white : .blue, for: .normal)
-        clearButton.setTitle("Clear All", for: .normal)
-        clearButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
-        self.view.addSubview(clearButton)
+        generalButton.frame = CGRect(x: 0, y: self.view.frame.size.height - 868, width: 100, height: 50)
+        generalButton.setTitleColor(darkModeToggle ? .white : .blue, for: .normal)
+        generalButton.setTitle(lock ? "Exit" : "Clear All", for: .normal)
+        if (!lock) {
+            generalButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
+        } else {
+            generalButton.addTarget(self, action: #selector(exitLock), for: .touchUpInside)
+        }
+        self.view.addSubview(generalButton)
         
         let buttons = [optionsButton, zoomOutButton, zoomInButton, currentLocButton]
         let iconImages = ["gear", "minus", "plus", "location"]
@@ -337,7 +370,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
             mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
         }
         self.mapView.delegate = self
-        mapView.settings.setAllGesturesEnabled(true)
+        mapView.settings.setAllGesturesEnabled(!lock)
         self.scene.addSubview(mapView)
         mapView.isTrafficEnabled = trafficToggle
         mapView.isIndoorEnabled = indoorToggle
