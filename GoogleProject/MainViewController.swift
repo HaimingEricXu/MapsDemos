@@ -15,6 +15,7 @@
 
 import UIKit
 import GoogleMaps
+import GoogleMapsUtils
 import GooglePlaces
 import MaterialComponents.MaterialButtons
 import MaterialComponents.MaterialActionSheet
@@ -44,8 +45,21 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     // Indicates if the map is locked or not; unlocked through a button
     private var lock: Bool = false
     
+    // Heatmap toggle
+    private var heatToggle = false
+    
+    // The heatmap
+    private var heatmapLayer: GMUHeatmapTileLayer = GMUHeatmapTileLayer()
+    
     // The general overlay controller for overlay-related features
     private var overlay = OverlayController()
+    
+    // The general instance to control image represenations
+    private var imageController = LocationImageGenerator()
+    
+    // Define the gradient colors and their start points.
+    private var gradientColors = [UIColor.green, UIColor.red]
+    private var gradientStartPoints = [0.2, 1.0] as? [NSNumber]
     
     // The location of the camera, which is initially set at Sydney, Australia
     private var currentPlaceID: String = "ChIJP3Sa8ziYEmsRUKgyFmh9AQM"
@@ -59,6 +73,8 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     
     // Requests access to the user's location
     private let locationManager = CLLocationManager()
+    
+    private var heatMapList = [GMUWeightedLatLng]()
     
     // Map setup variables
     private var camera: GMSCameraPosition!
@@ -139,10 +155,21 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                             handler: {Void in
                                                 self.openPanorama()
                                         })
+        let heatMap = MDCActionSheetAction(title: "Toggle Heat Map",
+                                            image: UIImage(systemName: "Home"),
+                                            handler: {Void in
+                                                if (self.independentToggle) {
+                                                    self.toggleOff()
+                                                }
+                                                self.overlay.showActivityIndicatory(view: self.view)
+                                                self.heatToggle = !self.heatToggle
+                                                self.retrievePlacemarks(at: 0)
+                                        })
         let radiusSearch = MDCActionSheetAction(title: "Radius Search",
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
                                                 self.radius()
+                                                //self.lock = true
                                                 let zoomCamera = GMSCameraUpdate.zoom(by: 13.0 - self.zoom)
                                                 self.zoom = 13.0
                                                 self.mapView.moveCamera(zoomCamera)
@@ -150,14 +177,65 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                                 self.refreshMap(newLoc: false)
                                                 self.refreshScreen()
                                         })
-        let actions: NSMutableArray = [independence, traffic, indoor, nearbyRecs, panoramicView, radiusSearch]
+        let actions: NSMutableArray = [independence, traffic, heatMap, indoor, nearbyRecs, panoramicView, radiusSearch]
         for a in actions {
             actionSheet.addAction(a as! MDCActionSheetAction)
         }
     }
     
+    func checkElement(location: CLLocation, completionHandler: @escaping (Bool?) -> Void) {
+        CLGeocoder().reverseGeocodeLocation(location, completionHandler: { (placemarks, error) in
+            completionHandler(placemarks?[0].country == "Australia")
+        })
+    }
+    
+    func retrievePlacemarks(at index: Int = 0) {
+        do {
+            if let path = Bundle.main.url(forResource: "dataset", withExtension: "json") {
+                let data = try Data(contentsOf: path)
+                let json = try JSONSerialization.jsonObject(with: data, options: [])
+                let object = json as? [[String: Any]]
+                guard index < object!.count else {
+                    self.heatmapLayer.weightedData = self.heatMapList
+                    self.refreshButtons()
+                    self.refreshMap(newLoc: false)
+                    self.refreshScreen()
+                    self.overlay.hideActivityIndicatory()
+                    return
+                }
+                checkElement(location: CLLocation(latitude: object![index]["lat"] as! CLLocationDegrees, longitude: object![index]["lng"] as! CLLocationDegrees)) { land in
+                    if (land ?? false) {
+                        let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(object![index]["lat"] as! CLLocationDegrees, object![index]["lng"] as! CLLocationDegrees), intensity: 1.0)
+                        self.heatMapList.append(coords)
+                    }
+                    DispatchQueue.main.async {
+                        self.retrievePlacemarks(at: index + 1)
+                    }
+                }
+            }
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
+    
     private func radius() {
+        // spoof the phone location
+        // maps SDK location simulator
         overlay.drawCircle(mapView: mapView, darkModeToggle: darkModeToggle, lat: currentLat, long: currentLong)
+        /*let nearbyMarker = GMSMarker()
+        nearbyMarker.position = CLLocationCoordinate2D(latitude: currentLat, longitude: currentLong + 0.01)
+        imageController.convertLatLongToAddress(latitude: currentLat, longitude: currentLong + 0.01, localMarker: nearbyMarker)*/
+        let circle = GMSCircle()
+        circle.map = nil
+        circle.position = CLLocationCoordinate2D(latitude: currentLat, longitude: currentLong + 0.01)
+        circle.radius = 600
+        circle.fillColor = .clear
+        circle.strokeColor = .black
+        circle.strokeWidth = 3.4
+        circle.title = imageController.convertLatLongToAddress(latitude: currentLat, longitude: currentLong + 0.01)
+        circle.map = mapView
+        print("title")
+        print(circle.title)
     }
     
     @objc func darkModeActivate(sender: UIButton!) {
@@ -177,6 +255,10 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
             x.map = nil
         }
         overlay.clear()
+        if (heatToggle) {
+            heatmapLayer.map = nil
+            heatToggle = false
+        }
     }
     
     // Unlocks the screen
@@ -192,6 +274,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         trafficToggle = false
         indoorToggle = false
         darkModeToggle = false
+        heatToggle = false
     }
     
     // Function to display a table view of nearby places; user selects one to view close-up
@@ -324,11 +407,8 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         let iconImages = ["gear", "minus", "plus", "location"]
         optionsButton.addTarget(self, action: #selector(optionsButtonTapped(optionsButton:)), for: .touchUpInside)
         zoomInButton.addTarget(self, action: #selector(zoomInButtonTapped(zoomInButton:)), for: .touchUpInside)
-        zoomOutButton.addTarget(self, action:
-            #selector(zoomOutButtonTapped(zoomOutButton:)), for: .touchUpInside)
-        currentLocButton.addTarget(self, action:
-            #selector(goToCurrent(currentLocButton:)), for: .touchUpInside)
-        
+        zoomOutButton.addTarget(self, action: #selector(zoomOutButtonTapped(zoomOutButton:)), for: .touchUpInside)
+        currentLocButton.addTarget(self, action: #selector(goToCurrent(currentLocButton:)), for: .touchUpInside)
         /* The scaling factors are as follows:
         *
         * The x-coordinate of the FABs are constant. They are located at 0.85 times the width of the width of view controller (which will change depending on the device) OR 0.1 times the width if we are viewing in indoor mode, since the right hand side contains indoor floor level loggles
@@ -372,6 +452,12 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         self.mapView.delegate = self
         mapView.settings.setAllGesturesEnabled(!lock)
         self.scene.addSubview(mapView)
+        if (heatToggle) {
+            heatmapLayer.map = mapView
+            heatmapLayer.gradient = GMUGradient(colors: gradientColors, startPoints: gradientStartPoints!, colorMapSize: 256)
+        } else {
+            heatmapLayer.map = nil
+        }
         mapView.isTrafficEnabled = trafficToggle
         mapView.isIndoorEnabled = indoorToggle
         marker.position = CLLocationCoordinate2D(latitude: currentLat, longitude: currentLong)

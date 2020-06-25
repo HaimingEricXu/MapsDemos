@@ -1,20 +1,4 @@
 PODS:
-  - Google-Maps-iOS-Utils (3.1.4):
-    - Google-Maps-iOS-Utils/Clustering (= 3.1.4)
-    - Google-Maps-iOS-Utils/Geometry (= 3.1.4)
-    - Google-Maps-iOS-Utils/Heatmap (= 3.1.4)
-    - Google-Maps-iOS-Utils/QuadTree (= 3.1.4)
-    - GoogleMaps
-  - Google-Maps-iOS-Utils/Clustering (3.1.4):
-    - Google-Maps-iOS-Utils/QuadTree
-    - GoogleMaps
-  - Google-Maps-iOS-Utils/Geometry (3.1.4):
-    - GoogleMaps
-  - Google-Maps-iOS-Utils/Heatmap (3.1.4):
-    - Google-Maps-iOS-Utils/QuadTree
-    - GoogleMaps
-  - Google-Maps-iOS-Utils/QuadTree (3.1.4):
-    - GoogleMaps
   - GoogleMaps (3.10.0-beta1):
     - GoogleMaps/Maps (= 3.10.0-beta1)
   - GoogleMaps/Base (3.10.0-beta1)
@@ -136,7 +120,6 @@ PODS:
   - MDFTextAccessibility (2.0.0)
 
 DEPENDENCIES:
-  - Google-Maps-iOS-Utils (~> 3.1.4)
   - GoogleMaps (~> 3.10.0-beta)
   - GooglePlaces (~> 3.10.0-beta)
   - MaterialComponents/ActionSheet
@@ -146,7 +129,6 @@ DEPENDENCIES:
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
-    - Google-Maps-iOS-Utils
     - GoogleMaps
     - GooglePlaces
     - MaterialComponents
@@ -154,13 +136,12 @@ SPEC REPOS:
     - MDFTextAccessibility
 
 SPEC CHECKSUMS:
-  Google-Maps-iOS-Utils: 1e51ca272b4f4befdf3577bf46f58c22ef22062c
   GoogleMaps: 17598f733b70288939758dad9bafd7dfeab3c1dc
   GooglePlaces: 5de0ebadf18689d16bacd6b4a65f30c319678ffd
   MaterialComponents: 00df0652f52cd6968b02d531bd2e6956b0f907b8
   MDFInternationalization: 010097556d6b09d2c4ea38e0820ea6d37be6a314
   MDFTextAccessibility: 85c09a1bd9c321f494348e632a25063bcda35a53
 
-PODFILE CHECKSUM: a92e53e656ec2f3074129aa8af0adf9b03faa0ca
+PODFILE CHECKSUM: d0c67d8a8e859cf41c70c7fe2c2306b790fcdb39
 
 COCOAPODS: 1.9.3

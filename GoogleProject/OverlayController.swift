@@ -14,6 +14,9 @@ class OverlayController {
     
     private var overlays = [GMSCircle]()
 
+    // Heatmap buffering
+    private var activityView = UIActivityIndicatorView(style: .whiteLarge)
+    
     init() {
         
     }
@@ -22,6 +25,19 @@ class OverlayController {
         for x in overlays {
             x.map = nil
         }
+    }
+    
+    func showActivityIndicatory(view: UIView) {
+        activityView.center = view.center
+        activityView.style = UIActivityIndicatorView.Style.large
+        activityView.color = .black
+        view.addSubview(activityView)
+        view.bringSubviewToFront(activityView)
+        activityView.startAnimating()
+    }
+    
+    func hideActivityIndicatory() {
+        activityView.removeFromSuperview()
     }
     
     func drawCircle(mapView: GMSMapView, darkModeToggle: Bool, lat: Double, long: Double) {

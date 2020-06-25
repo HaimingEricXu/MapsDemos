@@ -19,8 +19,39 @@ import GooglePlaces
 
 class LocationImageGenerator {
     
+    var ans: String = "None"
+    
     init() {
         
+    }
+    
+    
+    func convertLatLongToAddress(latitude: Double, longitude: Double) -> String {
+        let geoCoder = CLGeocoder()
+        let location = CLLocation(latitude: latitude, longitude: longitude)
+        geoCoder.reverseGeocodeLocation(location, completionHandler: { (placemarks, error) -> Void in
+            var placeMark: CLPlacemark!
+            placeMark = placemarks?[0]
+            if let locationName = placeMark.location {
+                print(locationName)
+            }
+            if let street = placeMark.thoroughfare {
+                print(street)
+            }
+            if let city = placeMark.subAdministrativeArea {
+                print(city)
+            }
+            if let zip = placeMark.isoCountryCode {
+                print(zip)
+            }
+            if let country = placeMark.country {
+                print(country)
+            }
+            for x in placeMark.areasOfInterest! {
+                self.ans = x
+            }
+        })
+        return ans
     }
     
     // Sets a marker's icon to a place's image, if it has one
