@@ -22,7 +22,7 @@ PODS:
     - GoogleMaps/Base
   - GooglePlaces (3.10.0-beta1):
     - GoogleMaps/Base (= 3.10.0-beta1)
-  - MaterialComponents/ActionSheet (109.8.0):
+  - MaterialComponents/ActionSheet (110.0.0):
     - MaterialComponents/Availability
     - MaterialComponents/BottomSheet
     - MaterialComponents/Elevation
@@ -31,8 +31,8 @@ PODS:
     - MaterialComponents/Ripple
     - MaterialComponents/ShadowElevations
     - MaterialComponents/Typography
-  - MaterialComponents/AnimationTiming (109.8.0)
-  - MaterialComponents/AppBar (109.8.0):
+  - MaterialComponents/AnimationTiming (110.0.0)
+  - MaterialComponents/AppBar (110.0.0):
     - MaterialComponents/FlexibleHeader
     - MaterialComponents/HeaderStackView
     - MaterialComponents/NavigationBar
@@ -43,13 +43,13 @@ PODS:
     - MaterialComponents/ShadowLayer
     - MaterialComponents/Typography
     - MDFInternationalization
-  - MaterialComponents/Availability (109.8.0)
-  - MaterialComponents/Banner (109.8.0):
+  - MaterialComponents/Availability (110.0.0)
+  - MaterialComponents/Banner (110.0.0):
     - MaterialComponents/Availability
     - MaterialComponents/Buttons
     - MaterialComponents/Elevation
     - MaterialComponents/Typography
-  - MaterialComponents/BottomSheet (109.8.0):
+  - MaterialComponents/BottomSheet (110.0.0):
     - MaterialComponents/Elevation
     - MaterialComponents/private/KeyboardWatcher
     - MaterialComponents/private/Math
@@ -57,11 +57,11 @@ PODS:
     - MaterialComponents/ShadowLayer
     - MaterialComponents/ShapeLibrary
     - MaterialComponents/Shapes
-  - MaterialComponents/ButtonBar (109.8.0):
+  - MaterialComponents/ButtonBar (110.0.0):
     - MaterialComponents/Buttons
     - MaterialComponents/private/Application
     - MDFInternationalization
-  - MaterialComponents/Buttons (109.8.0):
+  - MaterialComponents/Buttons (110.0.0):
     - MaterialComponents/Elevation
     - MaterialComponents/Ink
     - MaterialComponents/private/Math
@@ -73,11 +73,11 @@ PODS:
     - MaterialComponents/Typography
     - MDFInternationalization
     - MDFTextAccessibility
-  - MaterialComponents/Elevation (109.8.0):
+  - MaterialComponents/Elevation (110.0.0):
     - MaterialComponents/Availability
     - MaterialComponents/private/Color
     - MaterialComponents/private/Math
-  - MaterialComponents/FlexibleHeader (109.8.0):
+  - MaterialComponents/FlexibleHeader (110.0.0):
     - MaterialComponents/Availability
     - MaterialComponents/Elevation
     - "MaterialComponents/FlexibleHeader+ShiftBehavior"
@@ -88,50 +88,51 @@ PODS:
     - MaterialComponents/ShadowElevations
     - MaterialComponents/ShadowLayer
     - MDFTextAccessibility
-  - "MaterialComponents/FlexibleHeader+ShiftBehavior (109.8.0)"
-  - "MaterialComponents/FlexibleHeader+ShiftBehaviorEnabledWithStatusBar (109.8.0)":
+  - "MaterialComponents/FlexibleHeader+ShiftBehavior (110.0.0)"
+  - "MaterialComponents/FlexibleHeader+ShiftBehaviorEnabledWithStatusBar (110.0.0)":
     - "MaterialComponents/FlexibleHeader+ShiftBehavior"
-  - MaterialComponents/HeaderStackView (109.8.0)
-  - MaterialComponents/Ink (109.8.0):
+  - MaterialComponents/HeaderStackView (110.0.0)
+  - MaterialComponents/Ink (110.0.0):
     - MaterialComponents/Availability
     - MaterialComponents/private/Color
     - MaterialComponents/private/Math
-  - MaterialComponents/NavigationBar (109.8.0):
+  - MaterialComponents/NavigationBar (110.0.0):
     - MaterialComponents/ButtonBar
     - MaterialComponents/Elevation
     - MaterialComponents/private/Math
     - MaterialComponents/Typography
     - MDFInternationalization
     - MDFTextAccessibility
-  - MaterialComponents/private/Application (109.8.0)
-  - MaterialComponents/private/Color (109.8.0):
+  - MaterialComponents/private/Application (110.0.0)
+  - MaterialComponents/private/Color (110.0.0):
     - MaterialComponents/Availability
-  - MaterialComponents/private/Icons/Base (109.8.0)
-  - MaterialComponents/private/Icons/ic_arrow_back (109.8.0):
+  - MaterialComponents/private/Icons/Base (110.0.0)
+  - MaterialComponents/private/Icons/ic_arrow_back (110.0.0):
     - MaterialComponents/private/Icons/Base
-  - MaterialComponents/private/KeyboardWatcher (109.8.0):
+  - MaterialComponents/private/KeyboardWatcher (110.0.0):
     - MaterialComponents/private/Application
-  - MaterialComponents/private/Math (109.8.0)
-  - MaterialComponents/private/UIMetrics (109.8.0):
+  - MaterialComponents/private/Math (110.0.0)
+  - MaterialComponents/private/UIMetrics (110.0.0):
     - MaterialComponents/private/Application
-  - MaterialComponents/Ripple (109.8.0):
+  - MaterialComponents/Ripple (110.0.0):
     - MaterialComponents/AnimationTiming
     - MaterialComponents/Availability
     - MaterialComponents/private/Color
     - MaterialComponents/private/Math
-  - MaterialComponents/ShadowElevations (109.8.0)
-  - MaterialComponents/ShadowLayer (109.8.0):
+  - MaterialComponents/ShadowElevations (110.0.0)
+  - MaterialComponents/ShadowLayer (110.0.0):
     - MaterialComponents/ShadowElevations
-  - MaterialComponents/ShapeLibrary (109.8.0):
+  - MaterialComponents/ShapeLibrary (110.0.0):
     - MaterialComponents/private/Math
     - MaterialComponents/Shapes
-  - MaterialComponents/Shapes (109.8.0):
+  - MaterialComponents/Shapes (110.0.0):
     - MaterialComponents/private/Color
     - MaterialComponents/private/Math
     - MaterialComponents/ShadowLayer
-  - MaterialComponents/Typography (109.8.0):
+  - MaterialComponents/Typography (110.0.0):
     - MaterialComponents/private/Application
     - MaterialComponents/private/Math
+    - MDFTextAccessibility
   - MDFInternationalization (2.0.0)
   - MDFTextAccessibility (2.0.0)
 
@@ -157,10 +158,10 @@ SPEC CHECKSUMS:
   Google-Maps-iOS-Utils: 1e51ca272b4f4befdf3577bf46f58c22ef22062c
   GoogleMaps: 17598f733b70288939758dad9bafd7dfeab3c1dc
   GooglePlaces: 5de0ebadf18689d16bacd6b4a65f30c319678ffd
-  MaterialComponents: 00df0652f52cd6968b02d531bd2e6956b0f907b8
+  MaterialComponents: 8de2f7a102ae37bf276a558ac88086780f6d1b5f
   MDFInternationalization: 010097556d6b09d2c4ea38e0820ea6d37be6a314
   MDFTextAccessibility: 85c09a1bd9c321f494348e632a25063bcda35a53
 
-PODFILE CHECKSUM: a92e53e656ec2f3074129aa8af0adf9b03faa0ca
+PODFILE CHECKSUM: 292fc8ddbda542ecc82c0f0a50c9c44e484b3e44
 
 COCOAPODS: 1.9.3
