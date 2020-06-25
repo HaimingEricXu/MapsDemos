@@ -48,11 +48,14 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     // Heatmap toggle
     private var heatToggle = false
     
+    // The map type index
+    private var mapTypeIndex: Int = 0
+        
     // The heatmap
     private var heatmapLayer: GMUHeatmapTileLayer = GMUHeatmapTileLayer()
     
     // The general overlay controller for overlay-related features
-    private var overlay = OverlayController()
+    private var overlayController = OverlayController()
     
     // The general instance to control image represenations
     private var imageController = LocationImageGenerator()
@@ -74,6 +77,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     // Requests access to the user's location
     private let locationManager = CLLocationManager()
     
+    // The valid coordinates from the dataset
     private var heatMapList = [GMUWeightedLatLng]()
     
     // Map setup variables
@@ -161,9 +165,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                                 if (self.independentToggle) {
                                                     self.toggleOff()
                                                 }
-                                                self.overlay.showActivityIndicatory(view: self.view)
+                                                self.overlayController.showActivityIndicatory(view: self.view)
                                                 self.heatToggle = !self.heatToggle
-                                                self.retrievePlacemarks(at: 0)
+                                                self.generateHeatList(at: 0)
                                         })
         let radiusSearch = MDCActionSheetAction(title: "Radius Search",
                                             image: UIImage(systemName: "Home"),
@@ -189,7 +193,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         })
     }
     
-    func retrievePlacemarks(at index: Int = 0) {
+    func generateHeatList(at index: Int = 0) {
         do {
             if let path = Bundle.main.url(forResource: "dataset", withExtension: "json") {
                 let data = try Data(contentsOf: path)
@@ -200,7 +204,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                     self.refreshButtons()
                     self.refreshMap(newLoc: false)
                     self.refreshScreen()
-                    self.overlay.hideActivityIndicatory()
+                    self.overlayController.hideActivityIndicatory()
                     return
                 }
                 checkElement(location: CLLocation(latitude: object![index]["lat"] as! CLLocationDegrees, longitude: object![index]["lng"] as! CLLocationDegrees)) { land in
@@ -209,7 +213,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                         self.heatMapList.append(coords)
                     }
                     DispatchQueue.main.async {
-                        self.retrievePlacemarks(at: index + 1)
+                        self.generateHeatList(at: index + 1)
                     }
                 }
             }
@@ -221,7 +225,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     private func radius() {
         // spoof the phone location
         // maps SDK location simulator
-        overlay.drawCircle(mapView: mapView, darkModeToggle: darkModeToggle, lat: currentLat, long: currentLong)
+        overlayController.drawCircle(mapView: mapView, darkModeToggle: darkModeToggle, lat: currentLat, long: currentLong)
         /*let nearbyMarker = GMSMarker()
         nearbyMarker.position = CLLocationCoordinate2D(latitude: currentLat, longitude: currentLong + 0.01)
         imageController.convertLatLongToAddress(latitude: currentLat, longitude: currentLong + 0.01, localMarker: nearbyMarker)*/
@@ -254,7 +258,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         for x in nearbyLocationMarkers {
             x.map = nil
         }
-        overlay.clear()
+        overlayController.clear()
         if (heatToggle) {
             heatmapLayer.map = nil
             heatToggle = false
@@ -270,7 +274,10 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     }
     
     // Turns off all toggles
-    private func toggleOff() {
+    private func toggleOff(newMapType: Bool = false) {
+        if (!newMapType) {
+            mapTypeIndex = 0
+        }
         trafficToggle = false
         indoorToggle = false
         darkModeToggle = false
