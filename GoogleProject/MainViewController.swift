@@ -165,7 +165,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                                 if (self.independentToggle) {
                                                     self.toggleOff()
                                                 }
-                                                self.overlayController.showActivityIndicatory(view: self.view)
+                                                self.overlayController.showActivityIndicatory(view: self.view, darkMode: self.darkModeToggle)
                                                 self.heatToggle = !self.heatToggle
                                                 self.generateHeatList(at: 0)
                                         })

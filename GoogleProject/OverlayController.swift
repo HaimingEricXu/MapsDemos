@@ -27,10 +27,10 @@ class OverlayController {
         }
     }
     
-    func showActivityIndicatory(view: UIView) {
+    func showActivityIndicatory(view: UIView, darkMode: Bool) {
         activityView.center = view.center
         activityView.style = UIActivityIndicatorView.Style.large
-        activityView.color = .black
+        activityView.color = darkMode ? .white : .black
         view.addSubview(activityView)
         view.bringSubviewToFront(activityView)
         activityView.startAnimating()
