@@ -47,10 +47,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     
     // Heatmap toggle
     private var heatToggle = false
-    
-    // The map type index
-    private var mapTypeIndex: Int = 0
-        
+            
     // The heatmap
     private var heatmapLayer: GMUHeatmapTileLayer = GMUHeatmapTileLayer()
     
@@ -159,15 +156,19 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                                             handler: {Void in
                                                 self.openPanorama()
                                         })
-        let heatMap = MDCActionSheetAction(title: "Toggle Heat Map",
+        let heatMap = MDCActionSheetAction(title: "Show Heat Map For Location",
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
                                                 if (self.independentToggle) {
                                                     self.toggleOff()
                                                 }
-                                                self.overlayController.showActivityIndicatory(view: self.view, darkMode: self.darkModeToggle)
                                                 self.heatToggle = !self.heatToggle
-                                                self.generateHeatList(at: 0)
+                                                if (self.heatToggle) {
+                                                    self.overlayController.showActivityIndicatory(view: self.view, darkMode: self.darkModeToggle)
+                                                    self.generateHeatList(at: 0)
+                                                } else {
+                                                    self.heatmapLayer.map = nil
+                                                }
                                         })
         let radiusSearch = MDCActionSheetAction(title: "Radius Search",
                                             image: UIImage(systemName: "Home"),
@@ -193,53 +194,35 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         })
     }
     
+    
+    func randomBetween(_ firstNum: CGFloat, _ secondNum: CGFloat) -> CGFloat{
+        return CGFloat(arc4random()) / CGFloat(UINT32_MAX) * abs(firstNum - secondNum) + min(firstNum, secondNum)
+    }
+    
     func generateHeatList(at index: Int = 0) {
-        do {
-            if let path = Bundle.main.url(forResource: "dataset", withExtension: "json") {
-                let data = try Data(contentsOf: path)
-                let json = try JSONSerialization.jsonObject(with: data, options: [])
-                let object = json as? [[String: Any]]
-                guard index < object!.count else {
-                    self.heatmapLayer.weightedData = self.heatMapList
-                    self.refreshButtons()
-                    self.refreshMap(newLoc: false)
-                    self.refreshScreen()
-                    self.overlayController.hideActivityIndicatory()
-                    return
-                }
-                checkElement(location: CLLocation(latitude: object![index]["lat"] as! CLLocationDegrees, longitude: object![index]["lng"] as! CLLocationDegrees)) { land in
-                    if (land ?? false) {
-                        let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(object![index]["lat"] as! CLLocationDegrees, object![index]["lng"] as! CLLocationDegrees), intensity: 1.0)
-                        self.heatMapList.append(coords)
-                    }
-                    DispatchQueue.main.async {
-                        self.generateHeatList(at: index + 1)
-                    }
-                }
+        guard index < 1000 else {
+            self.heatmapLayer.weightedData = self.heatMapList
+            self.refreshButtons()
+            self.refreshMap(newLoc: false)
+            self.refreshScreen()
+            self.overlayController.hideActivityIndicatory()
+            return
+        }
+        let lat = randomBetween(CGFloat(Float(currentLat) - 0.08), CGFloat(Float(currentLat) + 0.08))
+        let long = randomBetween(CGFloat(Float(currentLong) - 0.08), CGFloat(Float(currentLong) + 0.08))
+        checkElement(location: CLLocation(latitude: CLLocationDegrees(lat), longitude: CLLocationDegrees(long))) { land in
+            if (land ?? false) {
+                let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(CLLocationDegrees(lat), CLLocationDegrees(long)), intensity: 1.0)
+                self.heatMapList.append(coords)
             }
-        } catch {
-            print(error.localizedDescription)
+            DispatchQueue.main.async {
+                self.generateHeatList(at: index + 1)
+            }
         }
     }
     
     private func radius() {
-        // spoof the phone location
-        // maps SDK location simulator
         overlayController.drawCircle(mapView: mapView, darkModeToggle: darkModeToggle, lat: currentLat, long: currentLong)
-        /*let nearbyMarker = GMSMarker()
-        nearbyMarker.position = CLLocationCoordinate2D(latitude: currentLat, longitude: currentLong + 0.01)
-        imageController.convertLatLongToAddress(latitude: currentLat, longitude: currentLong + 0.01, localMarker: nearbyMarker)*/
-        let circle = GMSCircle()
-        circle.map = nil
-        circle.position = CLLocationCoordinate2D(latitude: currentLat, longitude: currentLong + 0.01)
-        circle.radius = 600
-        circle.fillColor = .clear
-        circle.strokeColor = .black
-        circle.strokeWidth = 3.4
-        circle.title = imageController.convertLatLongToAddress(latitude: currentLat, longitude: currentLong + 0.01)
-        circle.map = mapView
-        print("title")
-        print(circle.title)
     }
     
     @objc func darkModeActivate(sender: UIButton!) {
@@ -275,9 +258,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     
     // Turns off all toggles
     private func toggleOff(newMapType: Bool = false) {
-        if (!newMapType) {
-            mapTypeIndex = 0
-        }
         trafficToggle = false
         indoorToggle = false
         darkModeToggle = false
@@ -416,6 +396,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         zoomInButton.addTarget(self, action: #selector(zoomInButtonTapped(zoomInButton:)), for: .touchUpInside)
         zoomOutButton.addTarget(self, action: #selector(zoomOutButtonTapped(zoomOutButton:)), for: .touchUpInside)
         currentLocButton.addTarget(self, action: #selector(goToCurrent(currentLocButton:)), for: .touchUpInside)
+        
         /* The scaling factors are as follows:
         *
         * The x-coordinate of the FABs are constant. They are located at 0.85 times the width of the width of view controller (which will change depending on the device) OR 0.1 times the width if we are viewing in indoor mode, since the right hand side contains indoor floor level loggles

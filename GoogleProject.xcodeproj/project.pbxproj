@@ -16,7 +16,6 @@
 		96764DB324915F2700B4B0B3 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 96764DB124915F2700B4B0B3 /* LaunchScreen.storyboard */; };
 		96764DBE24915F2700B4B0B3 /* GoogleProjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96764DBD24915F2700B4B0B3 /* GoogleProjectTests.swift */; };
 		96764DC924915F2700B4B0B3 /* GoogleProjectUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96764DC824915F2700B4B0B3 /* GoogleProjectUITests.swift */; };
-		96BA317A24A3ACE300A99524 /* dataset.json in Resources */ = {isa = PBXBuildFile; fileRef = 96BA317924A3ACE300A99524 /* dataset.json */; };
 		96BE1A00249D4B890071C69F /* StreetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96BE19FF249D4B890071C69F /* StreetViewController.swift */; };
 		96EC1543249BF61400F59A9C /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EC1542249BF61400F59A9C /* MainViewController.swift */; };
 		96F53C5E24A269A400355240 /* LocationImageGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F53C5D24A269A400355240 /* LocationImageGenerator.swift */; };
@@ -56,7 +55,6 @@
 		96764DC424915F2700B4B0B3 /* GoogleProjectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GoogleProjectUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		96764DC824915F2700B4B0B3 /* GoogleProjectUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleProjectUITests.swift; sourceTree = "<group>"; };
 		96764DCA24915F2700B4B0B3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		96BA317924A3ACE300A99524 /* dataset.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = dataset.json; sourceTree = SOURCE_ROOT; };
 		96BE19FF249D4B890071C69F /* StreetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreetViewController.swift; sourceTree = "<group>"; };
 		96EC1542249BF61400F59A9C /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		96F53C5D24A269A400355240 /* LocationImageGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationImageGenerator.swift; sourceTree = "<group>"; };
@@ -136,7 +134,6 @@
 				96764DAF24915F2700B4B0B3 /* Assets.xcassets */,
 				96764DB124915F2700B4B0B3 /* LaunchScreen.storyboard */,
 				96764DB424915F2700B4B0B3 /* Info.plist */,
-				96BA317924A3ACE300A99524 /* dataset.json */,
 			);
 			path = GoogleProject;
 			sourceTree = "<group>";
@@ -276,7 +273,6 @@
 			files = (
 				96764DB324915F2700B4B0B3 /* LaunchScreen.storyboard in Resources */,
 				96764DB024915F2700B4B0B3 /* Assets.xcassets in Resources */,
-				96BA317A24A3ACE300A99524 /* dataset.json in Resources */,
 				96764DAE24915F2400B4B0B3 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
