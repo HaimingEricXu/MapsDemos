@@ -12,10 +12,6 @@ import GoogleMaps
 
 class OverlayController {
     
-    init() {
-        
-    }
-    
     // Draws a pre-set rectangle in specified area; can/will change this to be more flexible and appear in more places
     func drawPolygon(mapView: GMSMapView, darkModeToggle: Bool) {
         let rect = GMSMutablePath()
