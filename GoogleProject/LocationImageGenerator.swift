@@ -26,7 +26,7 @@ class LocationImageGenerator {
     // Sets a marker's icon to a place's image, if it has one
     func viewImage(placeLoc: String, localMarker: GMSMarker, tapped: Bool = true) {
         let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
-        let fields: GMSPlaceField = GMSPlaceField(rawValue: UInt(GMSPlaceField.photos.rawValue))!
+        let fields: GMSPlaceField = .photos
         placesClient.fetchPlace(fromPlaceID: String(placeLoc), placeFields: fields,
                                  sessionToken: nil, callback: {
                                     (place: GMSPlace?, error: Error?) in
