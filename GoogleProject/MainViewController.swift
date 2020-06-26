@@ -44,12 +44,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     
     // Indicates if the map is locked or not; unlocked through a button
     private var lock: Bool = false
-    
-    // Heatmap toggle
-    private var heatToggle = false
             
     // The heatmap
-    private var heatmapLayer: GMUHeatmapTileLayer = GMUHeatmapTileLayer()
+    private var heatMapLayer: GMUHeatmapTileLayer = GMUHeatmapTileLayer()
     
     // The general overlay controller for overlay-related features
     private var overlayController = OverlayController()
@@ -91,6 +88,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     // Marker storage arrays
     private var nearbyLocationMarkers = [GMSMarker]()
     private let nearbyLocationIDs: NSMutableArray = []
+    private var heatMapPoints: NSMutableArray = []
     
     // Material design elements for UI
     private let actionSheet = MDCActionSheetController(title: "Options", message: "Pick a feature")
@@ -159,16 +157,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         let heatMap = MDCActionSheetAction(title: "Show Heat Map For Location",
                                             image: UIImage(systemName: "Home"),
                                             handler: {Void in
-                                                if (self.independentToggle) {
-                                                    self.toggleOff()
-                                                }
-                                                self.heatToggle = !self.heatToggle
-                                                if (self.heatToggle) {
-                                                    self.overlayController.showActivityIndicatory(view: self.view, darkMode: self.darkModeToggle)
-                                                    self.generateHeatList(at: 0)
-                                                } else {
-                                                    self.heatmapLayer.map = nil
-                                                }
+                                                self.heatMapLayer.map = nil
+                                                self.overlayController.showActivityIndicatory(view: self.view, darkMode: self.darkModeToggle)
+                                                self.generateHeatList()
                                         })
         let radiusSearch = MDCActionSheetAction(title: "Radius Search",
                                             image: UIImage(systemName: "Home"),
@@ -190,35 +181,48 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     
     func checkElement(location: CLLocation, completionHandler: @escaping (Bool?) -> Void) {
         CLGeocoder().reverseGeocodeLocation(location, completionHandler: { (placemarks, error) in
-            completionHandler(placemarks?[0].country == "Australia")
+            completionHandler(placemarks?[0].country != nil)
         })
     }
-    
     
     func randomBetween(_ firstNum: CGFloat, _ secondNum: CGFloat) -> CGFloat{
         return CGFloat(arc4random()) / CGFloat(UINT32_MAX) * abs(firstNum - secondNum) + min(firstNum, secondNum)
     }
     
-    func generateHeatList(at index: Int = 0) {
-        guard index < 1000 else {
-            self.heatmapLayer.weightedData = self.heatMapList
-            self.refreshButtons()
-            self.refreshMap(newLoc: false)
-            self.refreshScreen()
-            self.overlayController.hideActivityIndicatory()
+    func executeHeatMap(at index: Int = 0) {
+        guard index < heatMapPoints.count else {
+            heatMapLayer.weightedData = heatMapList
+            refreshMap(newLoc: false)
+            refreshScreen()
+            overlayController.hideActivityIndicatory()
+            print(heatMapList.capacity)
             return
         }
-        let lat = randomBetween(CGFloat(Float(currentLat) - 0.08), CGFloat(Float(currentLat) + 0.08))
-        let long = randomBetween(CGFloat(Float(currentLong) - 0.08), CGFloat(Float(currentLong) + 0.08))
-        checkElement(location: CLLocation(latitude: CLLocationDegrees(lat), longitude: CLLocationDegrees(long))) { land in
+        let lat = (heatMapPoints[index] as! CLLocation).coordinate.latitude
+        let long = (heatMapPoints[index] as! CLLocation).coordinate.longitude
+        /*checkElement(location: CLLocation(latitude: CLLocationDegrees(lat), longitude: CLLocationDegrees(long))) { land in
             if (land ?? false) {
                 let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(CLLocationDegrees(lat), CLLocationDegrees(long)), intensity: 1.0)
                 self.heatMapList.append(coords)
             }
             DispatchQueue.main.async {
-                self.generateHeatList(at: index + 1)
+                self.executeHeatMap(at: index + 1)
             }
+        }*/
+        let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(CLLocationDegrees(lat), CLLocationDegrees(long)), intensity: 1.0)
+        self.heatMapList.append(coords)
+        self.executeHeatMap(at: index + 1)
+    }
+    
+    func generateHeatList() {
+        var index: Int = 0
+        while index < 1000 {
+            let lat = randomBetween(CGFloat(Float(currentLat) - 0.08), CGFloat(Float(currentLat) + 0.08))
+            let long = randomBetween(CGFloat(Float(currentLong) - 0.08), CGFloat(Float(currentLong) + 0.08))
+            index += 1
+            heatMapPoints.add(CLLocation(latitude: CLLocationDegrees(lat), longitude: CLLocationDegrees(long)))
         }
+        executeHeatMap()
     }
     
     private func radius() {
@@ -242,10 +246,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
             x.map = nil
         }
         overlayController.clear()
-        if (heatToggle) {
-            heatmapLayer.map = nil
-            heatToggle = false
-        }
+        heatMapLayer.map = nil
+        heatMapList.removeAll()
+        heatMapLayer.weightedData = heatMapList
     }
     
     // Unlocks the screen
@@ -261,7 +264,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         trafficToggle = false
         indoorToggle = false
         darkModeToggle = false
-        heatToggle = false
     }
     
     // Function to display a table view of nearby places; user selects one to view close-up
@@ -440,12 +442,8 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         self.mapView.delegate = self
         mapView.settings.setAllGesturesEnabled(!lock)
         self.scene.addSubview(mapView)
-        if (heatToggle) {
-            heatmapLayer.map = mapView
-            heatmapLayer.gradient = GMUGradient(colors: gradientColors, startPoints: gradientStartPoints!, colorMapSize: 256)
-        } else {
-            heatmapLayer.map = nil
-        }
+        heatMapLayer.map = mapView
+        heatMapLayer.gradient = GMUGradient(colors: gradientColors, startPoints: gradientStartPoints!, colorMapSize: 256)
         mapView.isTrafficEnabled = trafficToggle
         mapView.isIndoorEnabled = indoorToggle
         marker.position = CLLocationCoordinate2D(latitude: currentLat, longitude: currentLong)
