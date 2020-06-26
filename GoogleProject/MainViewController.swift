@@ -195,11 +195,13 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
             refreshMap(newLoc: false)
             refreshScreen()
             overlayController.hideActivityIndicatory()
-            print(heatMapList.capacity)
             return
         }
         let lat = (heatMapPoints[index] as! CLLocation).coordinate.latitude
         let long = (heatMapPoints[index] as! CLLocation).coordinate.longitude
+        
+        /// prebuild the heat-map list
+        
         /*checkElement(location: CLLocation(latitude: CLLocationDegrees(lat), longitude: CLLocationDegrees(long))) { land in
             if (land ?? false) {
                 let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(CLLocationDegrees(lat), CLLocationDegrees(long)), intensity: 1.0)
@@ -216,7 +218,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     
     func generateHeatList() {
         var index: Int = 0
-        while index < 1000 {
+        while index < 15000 {
             let lat = randomBetween(CGFloat(Float(currentLat) - 0.08), CGFloat(Float(currentLat) + 0.08))
             let long = randomBetween(CGFloat(Float(currentLong) - 0.08), CGFloat(Float(currentLong) + 0.08))
             index += 1
