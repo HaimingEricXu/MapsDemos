@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3A45D9B224A92B800074AEDE /* MapThemes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A45D9B124A92B800074AEDE /* MapThemes.swift */; };
 		3A53327D24A683CE00FFE4C0 /* UIImageExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A53327C24A683CE00FFE4C0 /* UIImageExtension.swift */; };
 		5DBF61CACF83B12FEE90EA60 /* Pods_GoogleProject.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B14483610A4C076333AB730 /* Pods_GoogleProject.framework */; };
 		96764DA724915F2400B4B0B3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96764DA624915F2400B4B0B3 /* AppDelegate.swift */; };
@@ -41,6 +42,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3A45D9B124A92B800074AEDE /* MapThemes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapThemes.swift; sourceTree = "<group>"; };
 		3A53327C24A683CE00FFE4C0 /* UIImageExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageExtension.swift; sourceTree = "<group>"; };
 		5B14483610A4C076333AB730 /* Pods_GoogleProject.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GoogleProject.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		96764DA324915F2400B4B0B3 /* GoogleProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GoogleProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -133,6 +135,7 @@
 				96F53C6124A26C0A00355240 /* OverlayController.swift */,
 				96764DAA24915F2400B4B0B3 /* WelcomeViewController.swift */,
 				3A53327C24A683CE00FFE4C0 /* UIImageExtension.swift */,
+				3A45D9B124A92B800074AEDE /* MapThemes.swift */,
 				96764DAC24915F2400B4B0B3 /* Main.storyboard */,
 				96764DAF24915F2700B4B0B3 /* Assets.xcassets */,
 				96764DB124915F2700B4B0B3 /* LaunchScreen.storyboard */,
@@ -366,6 +369,7 @@
 				96EC1543249BF61400F59A9C /* MainViewController.swift in Sources */,
 				96F53C5E24A269A400355240 /* LocationImageGenerator.swift in Sources */,
 				96F53C6224A26C0A00355240 /* OverlayController.swift in Sources */,
+				3A45D9B224A92B800074AEDE /* MapThemes.swift in Sources */,
 				96BE1A00249D4B890071C69F /* StreetViewController.swift in Sources */,
 				3A53327D24A683CE00FFE4C0 /* UIImageExtension.swift in Sources */,
 			);

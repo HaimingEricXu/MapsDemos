@@ -24,6 +24,12 @@ class StreetViewController: UIViewController {
     private var long: Double = 0.0
     private var dark: Bool = false
     
+    private var centerx: Int = 0
+    private var centery: Int = 74
+    private var width: Int = 414
+    private var height: Int = 825
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = dark ? .black : .white
@@ -31,7 +37,7 @@ class StreetViewController: UIViewController {
     }
     
     private func showMap() {
-        let panoView = GMSPanoramaView.panorama(withFrame: CGRect(x: 0, y: 74, width: 414, height: 825), nearCoordinate: CLLocationCoordinate2D(latitude: lat, longitude: long))
+        let panoView = GMSPanoramaView.panorama(withFrame: CGRect(x: centerx, y: centery, width: width, height: height), nearCoordinate: CLLocationCoordinate2D(latitude: lat, longitude: long))
         self.view.addSubview(panoView)
         panoView.moveNearCoordinate(CLLocationCoordinate2D(latitude: lat, longitude: long))
         self.view.bringSubviewToFront(backButton)

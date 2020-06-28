@@ -27,6 +27,10 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     
     /// Indicates if the map should be in dark mode
     private var darkModeToggle: Bool = false
+    private var darkIconXOffset: CGFloat = 50
+    private var darkIconYOffset: CGFloat = 868
+    private var darkIconDim: CGFloat = 50
+
     
     /// Indicates if indoor maps should be enabled
     private var indoorToggle: Bool = false
@@ -34,8 +38,11 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     /// Switched between a marker and an image
     private var imageOn: Bool = false
     
-    /// If on, only one toggle may be on at a time
+    /// If on, only one toggle may be on at a time; the offsets set the location of the indicator
     private var independentToggle: Bool = false
+    private var indicatorXOffset: CGFloat = 57
+    private var indicatorYOffset: CGFloat = 851
+    private var indicatorDim: CGFloat = 20
     
     /// The zoom of the camera
     private var zoom: Float = 10.0
@@ -68,8 +75,16 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     /// Simple UI elements
     @IBOutlet weak private var scene: UIView!
     @IBOutlet weak private var welcomeLabel: UILabel!
+    let independentToggleIndicator = UIImageView(image: UIImage(systemName: "1.magnifyingglass"))
+    
     private var darkModeButton = UIButton()
     private var clearButton = UIButton()
+    private var clearXOffset: CGFloat = 0
+    private var clearYOffset: CGFloat = 868
+    private var clearWidth: CGFloat = 100
+    private var clearHeight: CGFloat = 50
+    
+    private var mapTheme = MapThemes.lightThemeId
     
     /// Marker storage arrays
     var nearbyLocationMarkers = [GMSMarker]()
@@ -101,29 +116,33 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                 self.toggleOff()
             }
             self.refreshButtons()
-            self.refreshMap(newLoc: false)
+            self.refreshMap(newLoc: false, darkModeSwitch: true)
             self.refreshScreen()
         })
         let traffic = MDCActionSheetAction(title: "Toggle Traffic Overlay", image: nil, handler: { Void in
+            let darkModeTemp = self.darkModeToggle
+            let trafficTemp = self.trafficToggle
             if (self.independentToggle) {
                 self.toggleOff()
             }
-            self.trafficToggle = !self.trafficToggle
-            self.refreshMap(newLoc: false)
+            self.trafficToggle = !trafficTemp
+            self.refreshMap(newLoc: false, darkModeSwitch: self.independentToggle && darkModeTemp ? true : false)
             self.refreshButtons()
             self.refreshScreen()
         })
         let indoor = MDCActionSheetAction(title: "Toggle Indoor Map", image: nil, handler: { Void in
+            let darkModeTemp = self.darkModeToggle
+            let indoorTemp = self.trafficToggle
             if (self.independentToggle) {
                 self.toggleOff()
             }
-            self.indoorToggle = !self.indoorToggle
+            self.indoorToggle = !indoorTemp
             if (self.indoorToggle) {
                 self.currentLat = self.sydneyOperaHouseLat
                 self.currentLong = self.sydneyOperaHouseLong
                 self.zoom = self.maximumZoom
             }
-            self.refreshMap(newLoc: true)
+            self.refreshMap(newLoc: false, darkModeSwitch: self.independentToggle && darkModeTemp ? true : false)
             self.refreshButtons()
             self.refreshScreen()
         })
@@ -229,10 +248,12 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     */
     private func refreshScreen() {
         if (independentToggle) {
-            let imageView = UIImageView(image: UIImage(systemName: "1.magnifyingglass"))
-            imageView.frame = CGRect(x: self.view.frame.size.width - 57, y: self.view.frame.size.height - 851, width: 20, height: 20)
-            imageView.tintColor = darkModeToggle ? .white : .red
-            self.view.addSubview(imageView)
+            independentToggleIndicator.isHidden = false
+            independentToggleIndicator.frame = CGRect(x: self.view.frame.size.width - indicatorXOffset, y: self.view.frame.size.height - indicatorYOffset, width: indicatorDim, height: indicatorDim)
+            independentToggleIndicator.tintColor = darkModeToggle ? .white : .red
+            self.view.addSubview(independentToggleIndicator)
+        } else {
+            independentToggleIndicator.isHidden = true
         }
         /// Sets up the search bar and results view controller
         self.view.backgroundColor = darkModeToggle ? .darkGray : .white
@@ -273,13 +294,13 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     
     /// Sets up the functionality and location of the FABs
     private func refreshButtons() {
-        darkModeButton.frame = CGRect(x: self.view.frame.size.width - 50, y: self.view.frame.size.height - 868, width: 50, height: 50)
+        darkModeButton.frame = CGRect(x: self.view.frame.size.width - darkIconXOffset, y: self.view.frame.size.height - darkIconYOffset, width: darkIconDim, height: darkIconDim)
         darkModeButton.setImage(UIImage(systemName: darkModeToggle ? "sun.min.fill" : "moon.stars.fill"), for: .normal)
         darkModeButton.tintColor = darkModeToggle ? .yellow : .blue
         darkModeButton.addTarget(self, action: #selector(darkModeActivate), for: .touchUpInside)
         self.view.addSubview(darkModeButton)
         
-        clearButton.frame = CGRect(x: 0, y: self.view.frame.size.height - 868, width: 100, height: 50)
+        clearButton.frame = CGRect(x: clearXOffset, y: self.view.frame.size.height - clearYOffset, width: clearWidth, height: clearHeight)
         clearButton.setTitleColor(darkModeToggle ? .white : .blue, for: .normal)
         clearButton.setTitle("Clear All", for: .normal)
         clearButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
@@ -322,7 +343,13 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
             imageOn = false
             marker.icon = UIImage(systemName: "default_marker.png")
         }
-        let mapID = darkModeToggle ? GMSMapID(identifier: "d9395ca70ad7dcb4") : GMSMapID(identifier: "209da1a703f62076")
+        switch darkModeToggle {
+        case true:
+            mapTheme = MapThemes.darkThemeId
+        default:
+            mapTheme = MapThemes.lightThemeId
+        }
+        let mapID = GMSMapID(identifier: mapTheme)
         if (newLoc) {
             camera = GMSCameraPosition.camera(withLatitude: currentLat, longitude: currentLong, zoom: zoom)
             if (mapView == nil) {
