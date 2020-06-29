@@ -99,8 +99,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     private let currentLocButton = MDCFloatingButton()
     private let infoButton = MDCFloatingButton()
     
-    private var infoCard = MDCCardCollectionCell()
-
     // Sets up the initial screen and adds options to the action sheet
     override func viewDidLoad() {
         super.viewDidLoad()

@@ -16,7 +16,6 @@
 import UIKit
 import GoogleMaps
 import GooglePlaces
-import MaterialComponents.MaterialCards
 
 class LocationImageGenerator {
     
