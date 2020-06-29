@@ -141,6 +141,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
             self.refreshScreen()
         })
         let nearbyRecs = MDCActionSheetAction(title: "Nearby Recommendations", image: UIImage(systemName: "Home"), handler: { Void in
+            /// Add marker clustering feature from iOSUtils
             self.showNearby()
             self.refreshButtons()
             self.refreshScreen()
