@@ -142,7 +142,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                 self.currentLong = self.sydneyOperaHouseLong
                 self.zoom = self.maximumZoom
             }
-            self.refreshMap(newLoc: false, darkModeSwitch: self.independentToggle && darkModeTemp ? true : false)
+            self.refreshMap(newLoc: true, darkModeSwitch: self.independentToggle && darkModeTemp ? true : false)
             self.refreshButtons()
             self.refreshScreen()
         })
@@ -398,7 +398,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         }
         let zoomCamera = GMSCameraUpdate.zoom(by: -2.0)
         mapView.moveCamera(zoomCamera)
-        zoom = max(mapView.camera.zoom, maximumZoom)
+        zoom = max(mapView.camera.zoom, 0)
         refreshButtons()
     }
     
