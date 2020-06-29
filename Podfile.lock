@@ -73,6 +73,14 @@ PODS:
     - MaterialComponents/Typography
     - MDFInternationalization
     - MDFTextAccessibility
+  - MaterialComponents/Cards (110.0.0):
+    - MaterialComponents/Elevation
+    - MaterialComponents/Ink
+    - MaterialComponents/private/Icons/ic_check_circle
+    - MaterialComponents/private/Math
+    - MaterialComponents/Ripple
+    - MaterialComponents/ShadowLayer
+    - MaterialComponents/Shapes
   - MaterialComponents/Elevation (110.0.0):
     - MaterialComponents/Availability
     - MaterialComponents/private/Color
@@ -109,6 +117,8 @@ PODS:
   - MaterialComponents/private/Icons/Base (110.0.0)
   - MaterialComponents/private/Icons/ic_arrow_back (110.0.0):
     - MaterialComponents/private/Icons/Base
+  - MaterialComponents/private/Icons/ic_check_circle (110.0.0):
+    - MaterialComponents/private/Icons/Base
   - MaterialComponents/private/KeyboardWatcher (110.0.0):
     - MaterialComponents/private/Application
   - MaterialComponents/private/Math (110.0.0)
@@ -144,6 +154,7 @@ DEPENDENCIES:
   - MaterialComponents/AppBar
   - MaterialComponents/Banner
   - MaterialComponents/Buttons
+  - MaterialComponents/Cards
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
@@ -162,6 +173,6 @@ SPEC CHECKSUMS:
   MDFInternationalization: 010097556d6b09d2c4ea38e0820ea6d37be6a314
   MDFTextAccessibility: 85c09a1bd9c321f494348e632a25063bcda35a53
 
-PODFILE CHECKSUM: 292fc8ddbda542ecc82c0f0a50c9c44e484b3e44
+PODFILE CHECKSUM: 0611bfb6f4d06f16241d67eedaec6086fa1b0e77
 
 COCOAPODS: 1.9.3

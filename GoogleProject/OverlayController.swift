@@ -17,10 +17,6 @@ class OverlayController {
     // Heatmap buffering
     private var activityView = UIActivityIndicatorView(style: .whiteLarge)
     
-    init() {
-        
-    }
-    
     func clear() {
         for x in overlays {
             x.map = nil

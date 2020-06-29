@@ -20,6 +20,7 @@ import GooglePlaces
 import MaterialComponents.MaterialButtons
 import MaterialComponents.MaterialActionSheet
 import MaterialComponents.MaterialBanner
+import MaterialComponents.MaterialCards
 
 // map feature -- different features
 class MainViewController: UIViewController, CLLocationManagerDelegate {
@@ -96,6 +97,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     private let zoomInButton = MDCFloatingButton()
     private let zoomOutButton = MDCFloatingButton()
     private let currentLocButton = MDCFloatingButton()
+    private let infoButton = MDCFloatingButton()
+    
+    private var infoCard = MDCCardCollectionCell()
 
     // Sets up the initial screen and adds options to the action sheet
     override func viewDidLoad() {
@@ -104,75 +108,61 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         refreshMap(newLoc: true)
         refreshButtons()
         refreshScreen()
-        let independence = MDCActionSheetAction(title: "Toggle Independent Features",
-                                            image: UIImage(systemName: "Home"),
-                                            handler: {Void in
-                                                self.independentToggle = !self.independentToggle
-                                                if (self.independentToggle) {
-                                                    self.toggleOff()
-                                                }
-                                                self.refreshButtons()
-                                                self.refreshMap(newLoc: false)
-                                                self.refreshScreen()
-                                        })
-        let traffic = MDCActionSheetAction(title: "Toggle Traffic Overlay",
-                                           image: UIImage(systemName: "Home"),
-                                           handler: {Void in
-                                            if (self.independentToggle) {
-                                                self.toggleOff()
-                                            }
-                                            self.trafficToggle = !self.trafficToggle
-                                            self.refreshMap(newLoc: false)
-                                            self.refreshButtons()
-                                            self.refreshScreen()
-                                        })
-        let indoor = MDCActionSheetAction(title: "Toggle Indoor Map",
-                                          image: UIImage(systemName: "Home"),
-                                          handler: {Void in
-                                            if (self.independentToggle) {
-                                                self.toggleOff()
-                                            }
-                                            self.indoorToggle = !self.indoorToggle
-                                            if (self.indoorToggle) {
-                                                self.currentLat = -33.856689
-                                                self.currentLong = 151.21526
-                                                self.zoom = 20.0
-                                            }
-                                            self.refreshMap(newLoc: true)
-                                            self.refreshButtons()
-                                            self.refreshScreen()
-                                        })
-        let nearbyRecs = MDCActionSheetAction(title: "Nearby Recommendations",
-                                            image: UIImage(systemName: "Home"),
-                                            handler: {Void in
-                                                self.showNearby()
-                                                self.refreshButtons()
-                                                self.refreshScreen()
-                                        })
-        let panoramicView = MDCActionSheetAction(title: "Panoramic View",
-                                            image: UIImage(systemName: "Home"),
-                                            handler: {Void in
-                                                self.openPanorama()
-                                        })
-        let heatMap = MDCActionSheetAction(title: "Show Heat Map For Location",
-                                            image: UIImage(systemName: "Home"),
-                                            handler: {Void in
-                                                self.heatMapLayer.map = nil
-                                                self.overlayController.showActivityIndicatory(view: self.view, darkMode: self.darkModeToggle)
-                                                self.generateHeatList()
-                                        })
-        let radiusSearch = MDCActionSheetAction(title: "Radius Search",
-                                            image: UIImage(systemName: "Home"),
-                                            handler: {Void in
-                                                self.radius()
-                                                //self.lock = true
-                                                let zoomCamera = GMSCameraUpdate.zoom(by: 13.0 - self.zoom)
-                                                self.zoom = 13.0
-                                                self.mapView.moveCamera(zoomCamera)
-                                                self.refreshButtons()
-                                                self.refreshMap(newLoc: false)
-                                                self.refreshScreen()
-                                        })
+        let independence = MDCActionSheetAction(title: "Toggle Independent Features", image: UIImage(systemName: "Home"), handler: { Void in
+            self.independentToggle = !self.independentToggle
+            if (self.independentToggle) {
+                self.toggleOff()
+            }
+            self.refreshButtons()
+            self.refreshMap(newLoc: false)
+            self.refreshScreen()
+        })
+        let traffic = MDCActionSheetAction(title: "Toggle Traffic Overlay", image: UIImage(systemName: "Home"), handler: { Void in
+            if (self.independentToggle) {
+                self.toggleOff()
+            }
+            self.trafficToggle = !self.trafficToggle
+            self.refreshMap(newLoc: false)
+            self.refreshButtons()
+            self.refreshScreen()
+        })
+        let indoor = MDCActionSheetAction(title: "Toggle Indoor Map", image: UIImage(systemName: "Home"), handler: { Void in
+            if (self.independentToggle) {
+                self.toggleOff()
+            }
+            self.indoorToggle = !self.indoorToggle
+            if (self.indoorToggle) {
+                self.currentLat = -33.856689
+                self.currentLong = 151.21526
+                self.zoom = 20.0
+            }
+            self.refreshMap(newLoc: true)
+            self.refreshButtons()
+            self.refreshScreen()
+        })
+        let nearbyRecs = MDCActionSheetAction(title: "Nearby Recommendations", image: UIImage(systemName: "Home"), handler: { Void in
+            self.showNearby()
+            self.refreshButtons()
+            self.refreshScreen()
+        })
+        let panoramicView = MDCActionSheetAction(title: "Panoramic View", image: UIImage(systemName: "Home"), handler: { Void in
+            self.openPanorama()
+        })
+        let heatMap = MDCActionSheetAction(title: "Show Heat Map For Location", image: UIImage(systemName: "Home"), handler: { Void in
+            self.heatMapLayer.map = nil
+            self.overlayController.showActivityIndicatory(view: self.view, darkMode: self.darkModeToggle)
+            self.generateHeatList()
+        })
+        let radiusSearch = MDCActionSheetAction(title: "Radius Search", image: UIImage(systemName: "Home"), handler: { Void in
+            self.radius()
+            //self.lock = true
+            let zoomCamera = GMSCameraUpdate.zoom(by: 13.0 - self.zoom)
+            self.zoom = 13.0
+            self.mapView.moveCamera(zoomCamera)
+            self.refreshButtons()
+            self.refreshMap(newLoc: false)
+            self.refreshScreen()
+        })
         let actions: NSMutableArray = [independence, traffic, heatMap, indoor, nearbyRecs, panoramicView, radiusSearch]
         for a in actions {
             actionSheet.addAction(a as! MDCActionSheetAction)
@@ -394,13 +384,14 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         }
         self.view.addSubview(generalButton)
         
-        let buttons = [optionsButton, zoomOutButton, zoomInButton, currentLocButton]
-        let iconImages = ["gear", "minus", "plus", "location"]
+        let buttons = [optionsButton, zoomOutButton, zoomInButton, currentLocButton, infoButton]
+        let iconImages = ["gear", "minus", "plus", "location", "info"]
         optionsButton.addTarget(self, action: #selector(optionsButtonTapped(optionsButton:)), for: .touchUpInside)
         zoomInButton.addTarget(self, action: #selector(zoomInButtonTapped(zoomInButton:)), for: .touchUpInside)
         zoomOutButton.addTarget(self, action: #selector(zoomOutButtonTapped(zoomOutButton:)), for: .touchUpInside)
         currentLocButton.addTarget(self, action: #selector(goToCurrent(currentLocButton:)), for: .touchUpInside)
-        
+        infoButton.addTarget(self, action: #selector(infoButtonTapped(infoButton:)), for: .touchUpInside)
+
         /* The scaling factors are as follows:
         *
         * The x-coordinate of the FABs are constant. They are located at 0.85 times the width of the width of view controller (which will change depending on the device) OR 0.1 times the width if we are viewing in indoor mode, since the right hand side contains indoor floor level loggles
@@ -482,6 +473,18 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         mapView.moveCamera(zoomCamera)
         zoom = max(mapView.camera.zoom, 0.0)
         refreshButtons()
+    }
+    
+    @objc private func infoButtonTapped(infoButton: MDCFloatingButton){
+        infoButton.collapse(true) {
+            infoButton.expand(true, completion: nil)
+        }
+        let popOverVC = storyboard?.instantiateViewController(withIdentifier: "popup_vc") as! PopUpViewController
+        popOverVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
+        popOverVC.setLocation(loc: currentPlaceID)
+        popOverVC.setLat(lat: currentLat)
+        popOverVC.setLong(long: currentLong)
+        self.present(popOverVC, animated: true)
     }
     
     // Moves the view to the phone's current location
@@ -574,8 +577,7 @@ extension MainViewController: GMSMapViewDelegate {
     @objc(mapView:didTapMarker:) func mapView(_: GMSMapView, didTap marker: GMSMarker) -> Bool {
         if (!imageOn) {
             imageOn = true
-            let temp = LocationImageGenerator()
-            temp.viewImage(placeLoc: currentPlaceID, localMarker: marker)
+            imageController.viewImage(placeLoc: currentPlaceID, localMarker: marker)
         } else {
             self.marker.icon = UIImage(systemName: "default_marker.png")
             imageOn = false

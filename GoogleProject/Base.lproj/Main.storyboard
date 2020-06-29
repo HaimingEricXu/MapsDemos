@@ -110,6 +110,21 @@
             </objects>
             <point key="canvasLocation" x="1506" y="104"/>
         </scene>
+        <!--Pop Up View Controller-->
+        <scene sceneID="poR-Hp-2k6">
+            <objects>
+                <viewController storyboardIdentifier="popup_vc" id="jmI-Jp-9aX" customClass="PopUpViewController" customModule="GoogleProject" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="txb-M6-JD7">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <viewLayoutGuide key="safeArea" id="Ofh-2I-6Ct"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="hdB-gA-NOk" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2178" y="104"/>
+        </scene>
     </scenes>
     <resources>
         <image name="arrow.left" catalog="system" width="128" height="98"/>
