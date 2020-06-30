@@ -22,7 +22,7 @@ import MaterialComponents.MaterialActionSheet
 import MaterialComponents.MaterialBanner
 import MaterialComponents.MaterialCards
 
-class MainViewController: UIViewController, CLLocationManagerDelegate {
+class MainViewController: UIViewController, CLLocationManagerDelegate, GMUClusterManagerDelegate {
     
     /// Indicates if the traffic map can be seen
     private var trafficToggle: Bool = false /// encapsulate into TrafficFeatureClass, pass in the map view; toggle on this class
@@ -53,6 +53,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     private var indicatorXOffset: CGFloat = 57
     private var indicatorYOffset: CGFloat = 851
     private var indicatorDim: CGFloat = 20
+    
+    /// The outlet to call methods in LocationImageGenerator
+    private let locationImageController = LocationImageGenerator()
     
     /// The zoom of the camera
     private var zoom: Float = 10.0
@@ -125,6 +128,8 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     
     /// The valid coordinates from the dataset
     private var heatMapList = [GMUWeightedLatLng]()
+    
+    private var clusterManager: GMUClusterManager!
 
     /// Sets up the initial screen and adds options to the action sheet
     override func viewDidLoad() {
@@ -133,6 +138,11 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         refreshMap(newLoc: true)
         refreshButtons()
         refreshScreen()
+        let iconGenerator = GMUDefaultClusterIconGenerator()
+        let algorithm = GMUNonHierarchicalDistanceBasedAlgorithm()
+        let renderer = GMUDefaultClusterRenderer(mapView: mapView, clusterIconGenerator: iconGenerator)
+        clusterManager = GMUClusterManager(map: mapView, algorithm: algorithm, renderer: renderer)
+        clusterManager.setDelegate(self, mapDelegate: self)
         let independence = MDCActionSheetAction(title: "Toggle Independent Features", image: nil, handler: { Void in
             self.independentToggle = !self.independentToggle
             if (self.independentToggle) {
@@ -196,6 +206,12 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         for a in actions {
             actionSheet.addAction(a as! MDCActionSheetAction)
         }
+    }
+    
+    private func clusterManager(clusterManager: GMUClusterManager, didTapCluster cluster: GMUCluster) {
+        let newCamera = GMSCameraPosition.camera(withTarget: cluster.position, zoom: mapView.camera.zoom + 1)
+        let update = GMSCameraUpdate.setCamera(newCamera)
+        mapView.moveCamera(update)
     }
     
     func checkElement(location: CLLocation, completionHandler: @escaping (Bool?) -> Void) {
@@ -263,10 +279,13 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     
     /// Clears all icon images and overlays
     @objc func clearAll(sender: UIButton!) {
-        for x in nearbyLocationMarkers {
-            x.map = nil
+        for marker in nearbyLocationMarkers {
+            marker.map = nil
         }
+        nearbyLocationMarkers.removeAll()
+        nearbyLocationIDs.removeAllObjects()
         overlayController.clear()
+        clusterManager.clearItems()
         heatMapLayer.map = nil
         heatMapList.removeAll()
         heatMapLayer.weightedData = heatMapList
@@ -300,6 +319,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                 for loc in placeLikelihoodList.likelihoods {
                     
                     /// We need to skip the first element because the first element is the actual location of the phone, while we want to take the nearby locations
+                    /// Possibly add a blue blinking marker for current location to differentiate
                     if (first) {
                         first = false
                         continue
@@ -309,11 +329,11 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                     self.nearbyLocationMarkers.append(temp)
                     self.nearbyLocationIDs.add(loc.place.placeID!)
                 }
-                let temp = LocationImageGenerator()
                 for locationMarker in self.nearbyLocationMarkers {
-                    temp.viewImage(placeId: self.nearbyLocationIDs[counter] as! String, localMarker: locationMarker, tapped: false)
+                    self.locationImageController.viewImage(placeId: self.nearbyLocationIDs[counter] as! String, localMarker: locationMarker, tapped: false)
                     locationMarker.map = self.mapView
                     counter += 1
+                    self.clusterManager.add(POIItem(position: CLLocationCoordinate2DMake(locationMarker.position.latitude + 0.01 * self.randomScale(), locationMarker.position.longitude + 0.01 * self.randomScale()), name: "New Item"))
                 }
                 self.placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
                     guard error == nil && placeLikelihoodList != nil else {
@@ -334,6 +354,19 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         })
         definesPresentationContext = true
     }
+    
+    /// Random number generator
+    private func randomScale() -> Double {
+        return Double(arc4random()) / Double(UINT32_MAX) * 2.0 - 1.0
+    }
+    
+    
+    private func nearbyIconVisibility(visible: Bool) {
+        for marker in nearbyLocationMarkers {
+            marker.map = visible ? mapView : nil
+        }
+    }
+    
     
     /// Opens up the StreetViewController for panorama viewing
     private func openPanorama() {
@@ -418,6 +451,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         clearButton.setTitle("Clear All", for: .normal)
         clearButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
         self.view.addSubview(clearButton)
+        
         let buttons = [optionsButton, zoomOutButton, zoomInButton, currentLocButton, infoButton]
         let iconImages = ["gear", "minus", "plus", "location", "info"]
         optionsButton.addTarget(self, action: #selector(optionsButtonTapped(optionsButton:)), for: .touchUpInside)
@@ -472,6 +506,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         if (darkModeSwitch) {
             mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
         }
+        nearbyIconVisibility(visible: zoom < 17 ? false : true)
         self.mapView.delegate = self
         mapView.settings.setAllGesturesEnabled(true)
         self.scene.addSubview(mapView)
@@ -502,6 +537,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         mapView.moveCamera(zoomCamera)
         zoom = min(mapView.camera.zoom, maximumZoom)
         refreshButtons()
+        refreshMap(newLoc: false)
     }
     
     /// Zoom out, changes zoom variable
@@ -513,6 +549,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         mapView.moveCamera(zoomCamera)
         zoom = max(mapView.camera.zoom, 0)
         refreshButtons()
+        refreshMap(newLoc: false)
     }
     
     /// Moves the view to the phone's current location
@@ -586,8 +623,7 @@ extension MainViewController: GMSMapViewDelegate {
     @objc(mapView:didTapMarker:) func mapView(_: GMSMapView, didTap marker: GMSMarker) -> Bool {
         if (!imageOn) {
             imageOn = true
-            let temp = LocationImageGenerator()
-            temp.viewImage(placeId: currentPlaceID, localMarker: marker)
+            locationImageController.viewImage(placeId: currentPlaceID, localMarker: marker)
         } else {
             self.marker.icon = UIImage(systemName: "default_marker.png")
             imageOn = false
@@ -595,4 +631,3 @@ extension MainViewController: GMSMapViewDelegate {
         return true
     }
 }
-
