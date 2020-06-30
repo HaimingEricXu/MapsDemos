@@ -271,6 +271,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
         if (independentToggle) {
             toggleOff()
         }
+        print("this is just a placeholder for git")
         darkModeToggle = tempToggle
         refreshMap(newLoc: false, darkModeSwitch: true)
         refreshScreen()
