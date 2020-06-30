@@ -14,7 +14,7 @@ class OverlayController {
     
     private var overlays = [GMSCircle]()
 
-    // Heatmap buffering
+    /// Heatmap buffering
     private var activityView = UIActivityIndicatorView(style: .whiteLarge)
     
     func clear() {
@@ -48,7 +48,7 @@ class OverlayController {
         overlays.append(circle)
     }
     
-    // Draws a pre-set rectangle in specified area; can/will change this to be more flexible and appear in more places
+    /// Draws a pre-set rectangle in specified area; can/will change this to be more flexible and appear in more places
     func drawRect(mapView: GMSMapView, darkModeToggle: Bool) {
         let rect = GMSMutablePath()
         rect.add(CLLocationCoordinate2D(latitude: 37.36, longitude: -122.0))

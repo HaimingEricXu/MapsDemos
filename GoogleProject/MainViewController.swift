@@ -22,76 +22,94 @@ import MaterialComponents.MaterialActionSheet
 import MaterialComponents.MaterialBanner
 import MaterialComponents.MaterialCards
 
-// map feature -- different features
 class MainViewController: UIViewController, CLLocationManagerDelegate {
     
-    // Indicates if the traffic map can be seen
-    private var trafficToggle: Bool = false // encapsulate into TrafficFeatureClass, pass in the map view; toggle on this class
+    /// Indicates if the traffic map can be seen
+    private var trafficToggle: Bool = false /// encapsulate into TrafficFeatureClass, pass in the map view; toggle on this class
     
-    // Indicates if the map should be in dark mode
+    /// Indicates if the map should be in dark mode
     private var darkModeToggle: Bool = false
-    
-    // Indicates if indoor maps should be enabled
-    private var indoorToggle: Bool = false
-    
-    // Switched between a marker and an image
-    private var imageOn: Bool = false
-    
-    // If on, only one toggle may be on at a time
-    private var independentToggle: Bool = false
-    
-    // The zoom of the camera
-    private var zoom: Float = 10.0
-    
-    // Indicates if the map is locked or not; unlocked through a button
+    private var darkIconXOffset: CGFloat = 50
+    private var darkIconYOffset: CGFloat = 868
+    private var darkIconDim: CGFloat = 50
+
+    /// Indicates if the map is locked or not; unlocked through a button
     private var lock: Bool = false
             
-    // The heatmap
+    /// The heatmap
     private var heatMapLayer: GMUHeatmapTileLayer = GMUHeatmapTileLayer()
     
-    // The general overlay controller for overlay-related features
-    private var overlayController = OverlayController()
-    
-    // The general instance to control image represenations
+    /// The general instance to control image representation
     private var imageController = LocationImageGenerator()
     
-    // Define the gradient colors and their start points.
-    private var gradientColors = [UIColor.green, UIColor.red]
-    private var gradientStartPoints = [0.2, 1.0] as? [NSNumber]
+    /// Indicates if indoor maps should be enabled
+    private var indoorToggle: Bool = false
     
-    // The location of the camera, which is initially set at Sydney, Australia
+    /// Switched between a marker and an image
+    private var imageOn: Bool = false
+    
+    /// If on, only one toggle may be on at a time; the offsets set the location of the indicator
+    private var independentToggle: Bool = false
+    private var indicatorXOffset: CGFloat = 57
+    private var indicatorYOffset: CGFloat = 851
+    private var indicatorDim: CGFloat = 20
+    
+    /// The zoom of the camera
+    private var zoom: Float = 10.0
+    
+    // The maximum zoom value; useful for indoor maps
+    private let maximumZoom: Float = 20.0
+    
+    /// The location of the camera, which is initially set at Sydney, Australia
     private var currentPlaceID: String = "ChIJP3Sa8ziYEmsRUKgyFmh9AQM"
     private var currentLat: Double = -33.86
     private var currentLong: Double = 151.20
     
-    // The search bar and autocomplete screen view controller
+    /// When the user selects indoor toggle, the map goes to the interior of Sydney Opera House as default
+    private let sydneyOperaHouseLat: Double = -33.856689
+    private let sydneyOperaHouseLong: Double = 151.21526
+    
+    /// The search bar and autocomplete screen view controller
     private var resultsViewController: GMSAutocompleteResultsViewController?
     private var searchController: UISearchController?
     private var resultView: UITextView?
     
-    // Requests access to the user's location
+    /// Requests access to the user's location
     private let locationManager = CLLocationManager()
     
-    // The valid coordinates from the dataset
-    private var heatMapList = [GMUWeightedLatLng]()
+    /// The general overlay controller for overlay-related features
+    private var overlayController = OverlayController()
     
-    // Map setup variables
+    /// Map setup variables
     private var camera: GMSCameraPosition!
     private var mapView: GMSMapView!
     private var marker: GMSMarker = GMSMarker()
     
-    // Simple UI elements
+    /// Simple UI elements
     @IBOutlet weak private var scene: UIView!
     @IBOutlet weak private var welcomeLabel: UILabel!
-    private var darkModeButton = UIButton()
+    let independentToggleIndicator = UIImageView(image: UIImage(systemName: "1.magnifyingglass"))
     private var generalButton = UIButton()
     
-    // Marker storage arrays
+    private var darkModeButton = UIButton()
+    private var clearButton = UIButton()
+    private var clearXOffset: CGFloat = 0
+    private var clearYOffset: CGFloat = 868
+    private var clearWidth: CGFloat = 100
+    private var clearHeight: CGFloat = 50
+    
+    private var mapTheme = MapThemes.lightThemeId
+    
+    /// Marker storage arrays
     private var nearbyLocationMarkers = [GMSMarker]()
     private let nearbyLocationIDs: NSMutableArray = []
     private var heatMapPoints: NSMutableArray = []
     
-    // Material design elements for UI
+    /// Define the gradient colors and their start points.
+    private var gradientColors = [UIColor.green, UIColor.red]
+    private var gradientStartPoints = [NSNumber(0.2), NSNumber(1.0)]
+    
+    /// Material design elements for UI
     private let actionSheet = MDCActionSheetController(title: "Options", message: "Pick a feature")
     private let optionsButton = MDCFloatingButton()
     private let zoomInButton = MDCFloatingButton()
@@ -99,52 +117,64 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     private let currentLocButton = MDCFloatingButton()
     private let infoButton = MDCFloatingButton()
     
-    // Sets up the initial screen and adds options to the action sheet
+    /// The current location of the iPhone using the app
+    private let currentClient: GMSPlacesClient = GMSPlacesClient.shared()
+    
+    /// Places client to get data on the iPhone's current location
+    private let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
+    
+    /// The valid coordinates from the dataset
+    private var heatMapList = [GMUWeightedLatLng]()
+
+    /// Sets up the initial screen and adds options to the action sheet
     override func viewDidLoad() {
         super.viewDidLoad()
         requestAuthorization()
         refreshMap(newLoc: true)
         refreshButtons()
         refreshScreen()
-        let independence = MDCActionSheetAction(title: "Toggle Independent Features", image: UIImage(systemName: "Home"), handler: { Void in
+        let independence = MDCActionSheetAction(title: "Toggle Independent Features", image: nil, handler: { Void in
             self.independentToggle = !self.independentToggle
             if (self.independentToggle) {
                 self.toggleOff()
             }
             self.refreshButtons()
-            self.refreshMap(newLoc: false)
+            self.refreshMap(newLoc: false, darkModeSwitch: true)
             self.refreshScreen()
         })
-        let traffic = MDCActionSheetAction(title: "Toggle Traffic Overlay", image: UIImage(systemName: "Home"), handler: { Void in
+        let traffic = MDCActionSheetAction(title: "Toggle Traffic Overlay", image: nil, handler: { Void in
+            let darkModeTemp = self.darkModeToggle
+            let trafficTemp = self.trafficToggle
             if (self.independentToggle) {
                 self.toggleOff()
             }
-            self.trafficToggle = !self.trafficToggle
-            self.refreshMap(newLoc: false)
+            self.trafficToggle = !trafficTemp
+            self.refreshMap(newLoc: false, darkModeSwitch: self.independentToggle && darkModeTemp ? true : false)
             self.refreshButtons()
             self.refreshScreen()
         })
-        let indoor = MDCActionSheetAction(title: "Toggle Indoor Map", image: UIImage(systemName: "Home"), handler: { Void in
+        let indoor = MDCActionSheetAction(title: "Toggle Indoor Map", image: nil, handler: { Void in
+            let darkModeTemp = self.darkModeToggle
+            let indoorTemp = self.trafficToggle
             if (self.independentToggle) {
                 self.toggleOff()
             }
-            self.indoorToggle = !self.indoorToggle
+            self.indoorToggle = !indoorTemp
             if (self.indoorToggle) {
-                self.currentLat = -33.856689
-                self.currentLong = 151.21526
-                self.zoom = 20.0
+                self.currentLat = self.sydneyOperaHouseLat
+                self.currentLong = self.sydneyOperaHouseLong
+                self.zoom = self.maximumZoom
             }
-            self.refreshMap(newLoc: true)
+            self.refreshMap(newLoc: true, darkModeSwitch: self.independentToggle && darkModeTemp ? true : false)
             self.refreshButtons()
             self.refreshScreen()
         })
-        let nearbyRecs = MDCActionSheetAction(title: "Nearby Recommendations", image: UIImage(systemName: "Home"), handler: { Void in
-            /// Add marker clustering feature from iOSUtils
+        let nearbyRecs = MDCActionSheetAction(title: "Nearby Recommendations", image: nil, handler: { Void in
             self.showNearby()
             self.refreshButtons()
             self.refreshScreen()
         })
-        let panoramicView = MDCActionSheetAction(title: "Panoramic View", image: UIImage(systemName: "Home"), handler: { Void in
+        let panoramicView = MDCActionSheetAction(title: "Panoramic View", image: nil, handler: { Void in
             self.openPanorama()
         })
         let heatMap = MDCActionSheetAction(title: "Show Heat Map For Location", image: UIImage(systemName: "Home"), handler: { Void in
@@ -189,7 +219,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         let lat = (heatMapPoints[index] as! CLLocation).coordinate.latitude
         let long = (heatMapPoints[index] as! CLLocation).coordinate.longitude
         
-        /// prebuild the heat-map list
+        //// prebuild the heat-map list
         
         /*checkElement(location: CLLocation(latitude: CLLocationDegrees(lat), longitude: CLLocationDegrees(long))) { land in
             if (land ?? false) {
@@ -231,7 +261,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         refreshButtons()
     }
     
-    // Clears all icon images and overlays
+    /// Clears all icon images and overlays
     @objc func clearAll(sender: UIButton!) {
         for x in nearbyLocationMarkers {
             x.map = nil
@@ -242,7 +272,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         heatMapLayer.weightedData = heatMapList
     }
     
-    // Unlocks the screen
+    /// Unlocks the screen
     @objc func exitLock(sender: UIButton!) {
         lock = false
         refreshButtons()
@@ -250,25 +280,26 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         refreshScreen()
     }
     
-    // Turns off all toggles
-    private func toggleOff(newMapType: Bool = false) {
+    /// Turns off all toggles
+    private func toggleOff() {
         trafficToggle = false
         indoorToggle = false
         darkModeToggle = false
     }
     
-    // Function to display a table view of nearby places; user selects one to view close-up
+    /// Function to display a table view of nearby places; user selects one to view close-up
     private func showNearby() {
-        let current: GMSPlacesClient = GMSPlacesClient.shared()
-        current.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
-            if let error = error {
-                print("Current Place error: \(error.localizedDescription)")
+        currentClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
+            guard error == nil else {
+                print("Current place error: \(error?.localizedDescription ?? "")")
                 return
             }
             if let placeLikelihoodList = placeLikelihoodList {
                 var counter: Int = 0
                 var first: Bool = true
                 for loc in placeLikelihoodList.likelihoods {
+                    
+                    /// We need to skip the first element because the first element is the actual location of the phone, while we want to take the nearby locations
                     if (first) {
                         first = false
                         continue
@@ -278,28 +309,25 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
                     self.nearbyLocationMarkers.append(temp)
                     self.nearbyLocationIDs.add(loc.place.placeID!)
                 }
-                for x in self.nearbyLocationMarkers {
-                    let temp = LocationImageGenerator()
-                    temp.viewImage(placeLoc: self.nearbyLocationIDs[counter] as! String, localMarker: x, tapped: false)
-                    x.map = self.mapView
+                let temp = LocationImageGenerator()
+                for locationMarker in self.nearbyLocationMarkers {
+                    temp.viewImage(placeId: self.nearbyLocationIDs[counter] as! String, localMarker: locationMarker, tapped: false)
+                    locationMarker.map = self.mapView
                     counter += 1
                 }
-                let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
-                placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
-                    if let error = error {
-                        print("Current Place error: \(error.localizedDescription)")
+                self.placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
+                    guard error == nil && placeLikelihoodList != nil else {
+                        print("Current place error: \(error?.localizedDescription ?? "")")
                         return
                     }
-                    if let placeLikelihoodList = placeLikelihoodList {
-                        let place = placeLikelihoodList.likelihoods.first?.place
-                        if let place = place {
-                            self.currentLat = place.coordinate.latitude
-                            self.currentLong = place.coordinate.longitude
-                            self.currentPlaceID = place.placeID!
-                            self.zoom = 20
-                            self.refreshMap(newLoc: true)
-                            self.refreshScreen()
-                        }
+                    let place = placeLikelihoodList?.likelihoods.first?.place
+                    if let place = place {
+                        self.currentLat = place.coordinate.latitude
+                        self.currentLong = place.coordinate.longitude
+                        self.currentPlaceID = place.placeID!
+                        self.zoom = 20
+                        self.refreshMap(newLoc: true)
+                        self.refreshScreen()
                     }
                 })
             }
@@ -307,14 +335,15 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         definesPresentationContext = true
     }
     
-    // Opens up the StreetViewController for panorama viewing
+    /// Opens up the StreetViewController for panorama viewing
     private func openPanorama() {
-        let vc = storyboard?.instantiateViewController(identifier: "street_vc") as! StreetViewController?
-        vc!.long = currentLong
-        vc!.lat = currentLat
-        vc!.dark = darkModeToggle
-        vc!.modalPresentationStyle = .fullScreen
-        present(vc!, animated: true)
+        /// There shouldn't be the need for an optional for vc, as this is hardcoded to depict StreetViewController
+        let vc = storyboard?.instantiateViewController(identifier: "street_vc") as! StreetViewController
+        vc.setLat(newLat: currentLat)
+        vc.setLong(newLong: currentLong)
+        vc.setDark(darkMode: darkModeToggle)
+        vc.modalPresentationStyle = .fullScreen
+        present(vc, animated: true)
     }
     
     /* Changes the colors of the buttons, search bar, action sheet, and search results view controller (depending on whether or not dark mode is on)
@@ -322,13 +351,14 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
     */
     private func refreshScreen() {
         if (independentToggle) {
-            let image = UIImage(systemName: "1.magnifyingglass")
-            let imageView = UIImageView(image: image!)
-            imageView.frame = CGRect(x: self.view.frame.size.width - 57, y: self.view.frame.size.height - 851, width: 20, height: 20)
-            imageView.tintColor = darkModeToggle ? .white : .red
-            self.view.addSubview(imageView)
+            independentToggleIndicator.isHidden = false
+            independentToggleIndicator.frame = CGRect(x: self.view.frame.size.width - indicatorXOffset, y: self.view.frame.size.height - indicatorYOffset, width: indicatorDim, height: indicatorDim)
+            independentToggleIndicator.tintColor = darkModeToggle ? .white : .red
+            self.view.addSubview(independentToggleIndicator)
+        } else {
+            independentToggleIndicator.isHidden = true
         }
-        // Sets up the search bar and results view controller
+        /// Sets up the search bar and results view controller
         self.view.backgroundColor = darkModeToggle ? .darkGray : .white
         self.scene.backgroundColor = darkModeToggle ? .darkGray : .white
         resultsViewController = GMSAutocompleteResultsViewController()
@@ -340,7 +370,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         scene.addSubview((searchController?.searchBar)!)
         searchController?.searchBar.sizeToFit()
         
-        // Changes the results view controller and search bar to be the right color
+        /// Changes the results view controller and search bar to be the right color
         resultsViewController?.tableCellSeparatorColor = darkModeToggle ? .black : .white
         resultsViewController?.tableCellBackgroundColor = darkModeToggle ? .black : .white
         resultsViewController?.primaryTextHighlightColor = darkModeToggle ? .white : .black
@@ -353,7 +383,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
             textfield.textColor = darkModeToggle ? .white : .black
         }
         
-        // Sets other view elements to the right colors
+        /// Sets other view elements to the right colors
         welcomeLabel.textColor = darkModeToggle ? .white : .black
         self.view.backgroundColor = darkModeToggle ? .black : .white
         actionSheet.actionTextColor = darkModeToggle ? .white : .black
@@ -365,9 +395,9 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         actionSheet.messageTextColor = darkModeToggle ? .white : .black
     }
     
-    // Sets up the functionality and location of the FABs
+    /// Sets up the functionality and location of the FABs
     private func refreshButtons() {
-        darkModeButton.frame = CGRect(x: self.view.frame.size.width - 50, y: self.view.frame.size.height - 868, width: 50, height: 50)
+        darkModeButton.frame = CGRect(x: self.view.frame.size.width - darkIconXOffset, y: self.view.frame.size.height - darkIconYOffset, width: darkIconDim, height: darkIconDim)
         darkModeButton.setImage(UIImage(systemName: darkModeToggle ? "sun.min.fill" : "moon.stars.fill"), for: .normal)
         darkModeButton.tintColor = darkModeToggle ? .yellow : .blue
         darkModeButton.addTarget(self, action: #selector(darkModeActivate), for: .touchUpInside)
@@ -383,6 +413,11 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         }
         self.view.addSubview(generalButton)
         
+        clearButton.frame = CGRect(x: clearXOffset, y: self.view.frame.size.height - clearYOffset, width: clearWidth, height: clearHeight)
+        clearButton.setTitleColor(darkModeToggle ? .white : .blue, for: .normal)
+        clearButton.setTitle("Clear All", for: .normal)
+        clearButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
+        self.view.addSubview(clearButton)
         let buttons = [optionsButton, zoomOutButton, zoomInButton, currentLocButton, infoButton]
         let iconImages = ["gear", "minus", "plus", "location", "info"]
         optionsButton.addTarget(self, action: #selector(optionsButtonTapped(optionsButton:)), for: .touchUpInside)
@@ -390,7 +425,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         zoomOutButton.addTarget(self, action: #selector(zoomOutButtonTapped(zoomOutButton:)), for: .touchUpInside)
         currentLocButton.addTarget(self, action: #selector(goToCurrent(currentLocButton:)), for: .touchUpInside)
         infoButton.addTarget(self, action: #selector(infoButtonTapped(infoButton:)), for: .touchUpInside)
-
+        
         /* The scaling factors are as follows:
         *
         * The x-coordinate of the FABs are constant. They are located at 0.85 times the width of the width of view controller (which will change depending on the device) OR 0.1 times the width if we are viewing in indoor mode, since the right hand side contains indoor floor level loggles
@@ -413,13 +448,19 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         darkModeButton.isHidden = false
     }
     
-    // Refreshes the map, allowing changes activated by the toggle to be seen
+    /// Refreshes the map, allowing changes activated by the toggle to be seen
     private func refreshMap(newLoc: Bool, darkModeSwitch: Bool = false) {
         if (newLoc) {
             imageOn = false
             marker.icon = UIImage(systemName: "default_marker.png")
         }
-        let mapID = darkModeToggle ? GMSMapID(identifier: "d9395ca70ad7dcb4") : GMSMapID(identifier: "209da1a703f62076")
+        switch darkModeToggle {
+        case true:
+            mapTheme = MapThemes.darkThemeId
+        default:
+            mapTheme = MapThemes.lightThemeId
+        }
+        let mapID = GMSMapID(identifier: mapTheme)
         if (newLoc) {
             camera = GMSCameraPosition.camera(withLatitude: currentLat, longitude: currentLong, zoom: zoom)
             if (mapView == nil) {
@@ -432,10 +473,10 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
             mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
         }
         self.mapView.delegate = self
-        mapView.settings.setAllGesturesEnabled(!lock)
+        mapView.settings.setAllGesturesEnabled(true)
         self.scene.addSubview(mapView)
         heatMapLayer.map = mapView
-        heatMapLayer.gradient = GMUGradient(colors: gradientColors, startPoints: gradientStartPoints!, colorMapSize: 256)
+        heatMapLayer.gradient = GMUGradient(colors: gradientColors, startPoints: gradientStartPoints, colorMapSize: 256)
         mapView.isTrafficEnabled = trafficToggle
         mapView.isIndoorEnabled = indoorToggle
         marker.position = CLLocationCoordinate2D(latitude: currentLat, longitude: currentLong)
@@ -444,7 +485,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         searchController?.title = ""
     }
     
-    // Opens the action menu
+    /// Opens the action menu
     @objc private func optionsButtonTapped(optionsButton: MDCFloatingButton){
         optionsButton.collapse(true) {
             optionsButton.expand(true, completion: nil)
@@ -452,25 +493,53 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         present(actionSheet, animated: true, completion: nil)
     }
     
-    // Zoom in, changes zoom variable
+    /// Zoom in, changes zoom variable
     @objc private func zoomInButtonTapped(zoomInButton: MDCFloatingButton){
         zoomInButton.collapse(true) {
             zoomInButton.expand(true, completion: nil)
         }
         let zoomCamera = GMSCameraUpdate.zoom(by: 2.0)
         mapView.moveCamera(zoomCamera)
-        zoom = min(mapView.camera.zoom, 20.0)
+        zoom = min(mapView.camera.zoom, maximumZoom)
         refreshButtons()
     }
     
-    // Zoom out, changes zoom variable
+    /// Zoom out, changes zoom variable
     @objc private func zoomOutButtonTapped(zoomOutButton: MDCFloatingButton){
         zoomOutButton.collapse(true) {
             zoomOutButton.expand(true, completion: nil)
         }
         let zoomCamera = GMSCameraUpdate.zoom(by: -2.0)
         mapView.moveCamera(zoomCamera)
-        zoom = max(mapView.camera.zoom, 0.0)
+        zoom = max(mapView.camera.zoom, 0)
+        refreshButtons()
+    }
+    
+    /// Moves the view to the phone's current location
+    @objc private func goToCurrent(currentLocButton: MDCFloatingButton){
+        currentLocButton.collapse(true) {
+            currentLocButton.expand(true, completion: nil)
+        }
+        placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
+            guard error == nil && placeLikelihoodList != nil else {
+                print("Current place error: \(error?.localizedDescription ?? "")")
+                return
+            }
+            guard placeLikelihoodList?.likelihoods.first != nil else {
+                print("No current place.")
+                return
+            }
+            let place = placeLikelihoodList?.likelihoods.first?.place
+            guard place != nil else {
+                print("Current place error: \(error?.localizedDescription ?? "")")
+                return
+            }
+            self.currentLat = Double(place?.coordinate.latitude ?? 0.0)
+            self.currentLong = Double(place?.coordinate.longitude ?? 0.0)
+            self.currentPlaceID = place?.placeID ?? "None"
+            self.refreshMap(newLoc: true)
+            self.refreshScreen()
+        })
         refreshButtons()
     }
     
@@ -486,41 +555,16 @@ class MainViewController: UIViewController, CLLocationManagerDelegate {
         self.present(popOverVC, animated: true)
     }
     
-    // Moves the view to the phone's current location
-    @objc private func goToCurrent(currentLocButton: MDCFloatingButton){
-        currentLocButton.collapse(true) {
-            currentLocButton.expand(true, completion: nil)
-        }
-        let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
-        placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
-            if let error = error {
-                print("Current Place error: \(error.localizedDescription)")
-                return
-            }
-            if let placeLikelihoodList = placeLikelihoodList {
-                let place = placeLikelihoodList.likelihoods.first?.place
-                if let place = place {
-                    self.currentLat = place.coordinate.latitude
-                    self.currentLong = place.coordinate.longitude
-                    self.currentPlaceID = place.placeID!
-                    self.refreshMap(newLoc: true)
-                    self.refreshScreen()
-                }
-            }
-        })
-        refreshButtons()
-    }
-    
-    // Requests the user's location
+    /// Requests the user's location
     private func requestAuthorization() {
         locationManager.requestWhenInUseAuthorization()
     }
 }
 
-// Extension for the search view controller and results view controller to interact
+/// Extension for the search view controller and results view controller to interact
 extension MainViewController: GMSAutocompleteResultsViewControllerDelegate {
     
-    // Once a location is confirmed, change currentLat and currentLong to reflect that location; updates the map to show that location
+    /// Once a location is confirmed, change currentLat and currentLong to reflect that location; updates the map to show that location
     func resultsController(_ resultsController: GMSAutocompleteResultsViewController,
                          didAutocompleteWith place: GMSPlace) {
         currentLat = place.coordinate.latitude
@@ -529,54 +573,21 @@ extension MainViewController: GMSAutocompleteResultsViewControllerDelegate {
         refreshMap(newLoc: true)
     }
     
-    // Default error message
+    /// Default error message
     func resultsController(_ resultsController: GMSAutocompleteResultsViewController,
                          didFailAutocompleteWithError error: Error){
         print("Error: ", error.localizedDescription)
     }
 }
 
-// Extensions to make the marker images circular and translucent
-extension UIImage {
-    
-    // Sets whatever image to be in a circular frame
-    var circleMask: UIImage? {
-        let square = CGSize(width: min(size.width, size.height), height: min(size.width, size.height))
-        let imageView = UIImageView(frame: .init(origin: .init(x: 0, y: 0), size: square))
-        imageView.contentMode = .scaleAspectFill
-        imageView.image = self
-        imageView.layer.cornerRadius = square.width/2
-        imageView.layer.borderColor = UIColor.white.cgColor
-        imageView.layer.borderWidth = 5
-        imageView.layer.masksToBounds = true
-        UIGraphicsBeginImageContextWithOptions(imageView.bounds.size, false, scale)
-        defer {
-            UIGraphicsEndImageContext()
-        }
-        guard let context = UIGraphicsGetCurrentContext() else {
-            return nil
-        }
-        imageView.layer.render(in: context)
-        return UIGraphicsGetImageFromCurrentImageContext()
-    }
-    
-    // Sets opacity to given alpha value
-    func opac(alpha: CGFloat) -> UIImage? {
-        UIGraphicsBeginImageContextWithOptions(size, false, scale)
-        draw(at: .zero, blendMode: .normal, alpha: alpha)
-        let newImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return newImage
-    }
-}
-
-// Allows the location icons to be clicked
+/// Allows the location icons to be clicked
 extension MainViewController: GMSMapViewDelegate {
     
     @objc(mapView:didTapMarker:) func mapView(_: GMSMapView, didTap marker: GMSMarker) -> Bool {
         if (!imageOn) {
             imageOn = true
-            imageController.viewImage(placeLoc: currentPlaceID, localMarker: marker)
+            let temp = LocationImageGenerator()
+            temp.viewImage(placeId: currentPlaceID, localMarker: marker)
         } else {
             self.marker.icon = UIImage(systemName: "default_marker.png")
             imageOn = false
@@ -584,3 +595,4 @@ extension MainViewController: GMSMapViewDelegate {
         return true
     }
 }
+
