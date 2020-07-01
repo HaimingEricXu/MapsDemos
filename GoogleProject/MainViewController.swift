@@ -36,8 +36,10 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
     /// Indicates if the map is locked or not; unlocked through a button
     private var lock: Bool = false
             
-    /// The heatmap
+    /// The heatmap,  its toggle, and point list
     private var heatMapLayer: GMUHeatmapTileLayer = GMUHeatmapTileLayer()
+    private var heatMapToggle = false
+    private var points = [GMUWeightedLatLng]()
     
     /// The general instance to control image representation
     private var imageController = LocationImageGenerator()
@@ -106,7 +108,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
     /// Marker storage arrays
     private var nearbyLocationMarkers = [GMSMarker]()
     private let nearbyLocationIDs: NSMutableArray = []
-    private var heatMapPoints: NSMutableArray = []
     
     /// Define the gradient colors and their start points.
     private var gradientColors = [UIColor.green, UIColor.red]
@@ -126,9 +127,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
     /// Places client to get data on the iPhone's current location
     private let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
     
-    /// The valid coordinates from the dataset
-    private var heatMapList = [GMUWeightedLatLng]()
-    
     private var clusterManager: GMUClusterManager!
 
     /// Sets up the initial screen and adds options to the action sheet
@@ -138,11 +136,15 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
         refreshMap(newLoc: true)
         refreshButtons()
         refreshScreen()
+        heatMapLayer.map = mapView
+        executeHeatMap()
+        
         let iconGenerator = GMUDefaultClusterIconGenerator()
         let algorithm = GMUNonHierarchicalDistanceBasedAlgorithm()
         let renderer = GMUDefaultClusterRenderer(mapView: mapView, clusterIconGenerator: iconGenerator)
         clusterManager = GMUClusterManager(map: mapView, algorithm: algorithm, renderer: renderer)
         clusterManager.setDelegate(self, mapDelegate: self)
+        
         let independence = MDCActionSheetAction(title: "Toggle Independent Features", image: nil, handler: { Void in
             self.independentToggle = !self.independentToggle
             if (self.independentToggle) {
@@ -187,14 +189,25 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
         let panoramicView = MDCActionSheetAction(title: "Panoramic View", image: nil, handler: { Void in
             self.openPanorama()
         })
-        let heatMap = MDCActionSheetAction(title: "Show Heat Map For Location", image: UIImage(systemName: "Home"), handler: { Void in
-            self.heatMapLayer.map = nil
-            self.overlayController.showActivityIndicatory(view: self.view, darkMode: self.darkModeToggle)
-            self.generateHeatList()
+        let heatMap = MDCActionSheetAction(title: "Toggle Heat Map", image: UIImage(systemName: "Home"), handler: { Void in
+            if (self.independentToggle) {
+                self.toggleOff()
+            }
+            self.heatMapToggle = !self.heatMapToggle
+            if (self.heatMapToggle) {
+                self.heatMapLayer.weightedData = self.points
+                self.heatMapLayer.map = self.mapView
+            } else {
+                self.heatMapLayer.weightedData = []
+                self.heatMapLayer.map = nil
+            }
+            self.refreshButtons()
+            self.refreshMap(newLoc: false, darkModeSwitch: true)
+            self.refreshScreen()
         })
         let radiusSearch = MDCActionSheetAction(title: "Radius Search", image: UIImage(systemName: "Home"), handler: { Void in
             self.radius()
-            //self.lock = true
+            self.lock = true
             let zoomCamera = GMSCameraUpdate.zoom(by: 13.0 - self.zoom)
             self.zoom = 13.0
             self.mapView.moveCamera(zoomCamera)
@@ -202,6 +215,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
             self.refreshMap(newLoc: false)
             self.refreshScreen()
         })
+        
         let actions: NSMutableArray = [independence, traffic, heatMap, indoor, nearbyRecs, panoramicView, radiusSearch]
         for a in actions {
             actionSheet.addAction(a as! MDCActionSheetAction)
@@ -214,52 +228,25 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
         mapView.moveCamera(update)
     }
     
-    func checkElement(location: CLLocation, completionHandler: @escaping (Bool?) -> Void) {
-        CLGeocoder().reverseGeocodeLocation(location, completionHandler: { (placemarks, error) in
-            completionHandler(placemarks?[0].country != nil)
-        })
-    }
-    
-    func randomBetween(_ firstNum: CGFloat, _ secondNum: CGFloat) -> CGFloat{
-        return CGFloat(arc4random()) / CGFloat(UINT32_MAX) * abs(firstNum - secondNum) + min(firstNum, secondNum)
-    }
-    
-    func executeHeatMap(at index: Int = 0) {
-        guard index < heatMapPoints.count else {
-            heatMapLayer.weightedData = heatMapList
-            refreshMap(newLoc: false)
-            refreshScreen()
-            overlayController.hideActivityIndicatory()
-            return
-        }
-        let lat = (heatMapPoints[index] as! CLLocation).coordinate.latitude
-        let long = (heatMapPoints[index] as! CLLocation).coordinate.longitude
-        
-        //// prebuild the heat-map list
-        
-        /*checkElement(location: CLLocation(latitude: CLLocationDegrees(lat), longitude: CLLocationDegrees(long))) { land in
-            if (land ?? false) {
-                let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(CLLocationDegrees(lat), CLLocationDegrees(long)), intensity: 1.0)
-                self.heatMapList.append(coords)
+    func executeHeatMap() {
+        do {
+            if let path = Bundle.main.url(forResource: "dataset", withExtension: "json") {
+                let data = try Data(contentsOf: path)
+                let json = try JSONSerialization.jsonObject(with: data, options: [])
+                if let object = json as? [[String: Any]] {
+                    for item in object {
+                        let lat = item["lat"]
+                        let lng = item["lng"]
+                        let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(lat as! CLLocationDegrees, lng as! CLLocationDegrees), intensity: 1.0)
+                        points.append(coords)
+                    }
+                } else {
+                    print("Could not read the JSON.")
+                }
             }
-            DispatchQueue.main.async {
-                self.executeHeatMap(at: index + 1)
-            }
-        }*/
-        let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(CLLocationDegrees(lat), CLLocationDegrees(long)), intensity: 1.0)
-        self.heatMapList.append(coords)
-        self.executeHeatMap(at: index + 1)
-    }
-    
-    func generateHeatList() {
-        var index: Int = 0
-        while index < 15000 {
-            let lat = randomBetween(CGFloat(Float(currentLat) - 0.08), CGFloat(Float(currentLat) + 0.08))
-            let long = randomBetween(CGFloat(Float(currentLong) - 0.08), CGFloat(Float(currentLong) + 0.08))
-            index += 1
-            heatMapPoints.add(CLLocation(latitude: CLLocationDegrees(lat), longitude: CLLocationDegrees(long)))
+        } catch {
+          print(error.localizedDescription)
         }
-        executeHeatMap()
     }
     
     private func radius() {
@@ -286,9 +273,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
         nearbyLocationIDs.removeAllObjects()
         overlayController.clear()
         clusterManager.clearItems()
-        heatMapLayer.map = nil
-        heatMapList.removeAll()
-        heatMapLayer.weightedData = heatMapList
     }
     
     /// Unlocks the screen
@@ -304,9 +288,14 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
         trafficToggle = false
         indoorToggle = false
         darkModeToggle = false
+        heatMapToggle = false
+        heatMapLayer.weightedData = []
+        heatMapLayer.map = nil
     }
     
-    /// Function to display a table view of nearby places; user selects one to view close-up
+    /// ADD comments about how the code and features work
+    
+    /// Function to display nearby points of interest
     private func showNearby() {
         currentClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
             guard error == nil else {
@@ -333,7 +322,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
                     self.locationImageController.viewImage(placeId: self.nearbyLocationIDs[counter] as! String, localMarker: locationMarker, tapped: false)
                     locationMarker.map = self.mapView
                     counter += 1
-                    self.clusterManager.add(POIItem(position: CLLocationCoordinate2DMake(locationMarker.position.latitude + 0.01 * self.randomScale(), locationMarker.position.longitude + 0.01 * self.randomScale()), name: "New Item"))
+                    self.clusterManager.add(POIItem(position: CLLocationCoordinate2DMake(locationMarker.position.latitude, locationMarker.position.longitude), name: "New Item"))
                 }
                 self.placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
                     guard error == nil && placeLikelihoodList != nil else {
@@ -391,9 +380,10 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
         } else {
             independentToggleIndicator.isHidden = true
         }
+        
         /// Sets up the search bar and results view controller
-        self.view.backgroundColor = darkModeToggle ? .darkGray : .white
-        self.scene.backgroundColor = darkModeToggle ? .darkGray : .white
+        view.backgroundColor = darkModeToggle ? .darkGray : .white
+        scene.backgroundColor = darkModeToggle ? .darkGray : .white
         resultsViewController = GMSAutocompleteResultsViewController()
         resultsViewController?.delegate = self
         searchController = UISearchController(searchResultsController: resultsViewController)
@@ -506,7 +496,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
         if (darkModeSwitch) {
             mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
         }
-        nearbyIconVisibility(visible: zoom < 17 ? false : true)
+        nearbyIconVisibility(visible: zoom < 20 ? false : true)
         self.mapView.delegate = self
         mapView.settings.setAllGesturesEnabled(true)
         self.scene.addSubview(mapView)
@@ -538,6 +528,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
         zoom = min(mapView.camera.zoom, maximumZoom)
         refreshButtons()
         refreshMap(newLoc: false)
+        refreshScreen()
     }
     
     /// Zoom out, changes zoom variable
@@ -550,6 +541,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
         zoom = max(mapView.camera.zoom, 0)
         refreshButtons()
         refreshMap(newLoc: false)
+        refreshScreen()
     }
     
     /// Moves the view to the phone's current location
