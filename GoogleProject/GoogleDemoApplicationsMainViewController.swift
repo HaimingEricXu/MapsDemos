@@ -22,45 +22,69 @@ import MaterialComponents.MaterialActionSheet
 import MaterialComponents.MaterialBanner
 import MaterialComponents.MaterialCards
 
-class MainViewController: UIViewController, CLLocationManagerDelegate, GMUClusterManagerDelegate {
+class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationManagerDelegate, GMUClusterManagerDelegate {
+    
+    private let initialZoom: Float = 10.0
     
     /// Indicates if the traffic map can be seen
-    private var trafficToggle: Bool = false /// encapsulate into TrafficFeatureClass, pass in the map view; toggle on this class
-    
-    /// Indicates if the map should be in dark mode
-    private var darkModeToggle: Bool = false
-    private var darkIconXOffset: CGFloat = 50
-    private var darkIconYOffset: CGFloat = 868
-    private var darkIconDim: CGFloat = 50
-
-    /// Indicates if the map is locked or not; unlocked through a button
-    private var lock: Bool = false
-            
-    /// The heatmap,  its toggle, and point list
-    private var heatMapLayer: GMUHeatmapTileLayer = GMUHeatmapTileLayer()
-    private var heatMapToggle = false
-    private var points = [GMUWeightedLatLng]()
-    
-    /// The general instance to control image representation
-    private var imageController = LocationImageGenerator()
+    private var trafficToggle: Bool = false
     
     /// Indicates if indoor maps should be enabled
     private var indoorToggle: Bool = false
     
-    /// Switched between a marker and an image
-    private var imageOn: Bool = false
-    
     /// If on, only one toggle may be on at a time; the offsets set the location of the indicator
     private var independentToggle: Bool = false
-    private var indicatorXOffset: CGFloat = 57
-    private var indicatorYOffset: CGFloat = 851
-    private var indicatorDim: CGFloat = 20
+    
+    /// Indicates if the map should be in dark mode
+    private var darkModeToggle: Bool = false
+    
+    /// Indicates if the heat map should appear
+    private var heatMapToggle = false
+    
+    /// Dark mode button and properties; may change depending on the device
+    private var darkModeButton = UIButton()
+    private var darkIconXOffset: CGFloat = 50
+    private var darkIconYOffset: CGFloat = 868
+    private var darkIconDim: CGFloat = 50
+    
+    /// The heat map,  its data set, and other color setup
+    private var heatMapLayer: GMUHeatmapTileLayer = GMUHeatmapTileLayer()
+    private var heatMapPoints = [GMUWeightedLatLng]()
+    private var gradientColors = [UIColor.green, UIColor.red]
+    private var gradientStartheatMapPoints = [NSNumber(0.2), NSNumber(1.0)]
+    
+    /// Requests access to the user's location
+    private let locationManager = CLLocationManager()
+    
+    /// The general overlay controller for overlay-related features
+    private var overlayController = OverlayController()
     
     /// The outlet to call methods in LocationImageGenerator
     private let locationImageController = LocationImageGenerator()
     
+    /// The current location of the iPhone using the app
+    private let currentClient: GMSPlacesClient = GMSPlacesClient.shared()
+    
+    /// Places client to get data on the iPhone's current location
+    private let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
+    
+    /// The cluster manager for the nearby recommendations feature; clusters icons to reduce clutter
+    private var clusterManager: GMUClusterManager!
+
+    /// Indicates if the map is locked or not; unlocked through a button
+    private var lock: Bool = false
+            
+    /// Switches between a marker and an image
+    private var imageOn: Bool = false
+    
+    /// Indepedent features indicator and properies; may change depending on the device
+    private let independentToggleIndicator = UIImageView(image: UIImage(systemName: "1.magnifyingglass"))
+    private var indicatorXOffset: CGFloat = 57
+    private var indicatorYOffset: CGFloat = 851
+    private var indicatorDim: CGFloat = 20
+    
     /// The zoom of the camera
-    private var zoom: Float = 10.0
+    private var zoom: Float!
     
     // The maximum zoom value; useful for indoor maps
     private let maximumZoom: Float = 20.0
@@ -79,12 +103,6 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
     private var searchController: UISearchController?
     private var resultView: UITextView?
     
-    /// Requests access to the user's location
-    private let locationManager = CLLocationManager()
-    
-    /// The general overlay controller for overlay-related features
-    private var overlayController = OverlayController()
-    
     /// Map setup variables
     private var camera: GMSCameraPosition!
     private var mapView: GMSMapView!
@@ -93,25 +111,19 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
     /// Simple UI elements
     @IBOutlet weak private var scene: UIView!
     @IBOutlet weak private var welcomeLabel: UILabel!
-    let independentToggleIndicator = UIImageView(image: UIImage(systemName: "1.magnifyingglass"))
     private var generalButton = UIButton()
-    
-    private var darkModeButton = UIButton()
     private var clearButton = UIButton()
     private var clearXOffset: CGFloat = 0
     private var clearYOffset: CGFloat = 868
     private var clearWidth: CGFloat = 100
     private var clearHeight: CGFloat = 50
     
+    /// The map theme (dark mode or light mode); initially set to light mode
     private var mapTheme = MapThemes.lightThemeId
     
     /// Marker storage arrays
     private var nearbyLocationMarkers = [GMSMarker]()
     private let nearbyLocationIDs: NSMutableArray = []
-    
-    /// Define the gradient colors and their start points.
-    private var gradientColors = [UIColor.green, UIColor.red]
-    private var gradientStartPoints = [NSNumber(0.2), NSNumber(1.0)]
     
     /// Material design elements for UI
     private let actionSheet = MDCActionSheetController(title: "Options", message: "Pick a feature")
@@ -120,19 +132,13 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
     private let zoomOutButton = MDCFloatingButton()
     private let currentLocButton = MDCFloatingButton()
     private let infoButton = MDCFloatingButton()
-    
-    /// The current location of the iPhone using the app
-    private let currentClient: GMSPlacesClient = GMSPlacesClient.shared()
-    
-    /// Places client to get data on the iPhone's current location
-    private let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
-    
-    private var clusterManager: GMUClusterManager!
 
     /// Sets up the initial screen and adds options to the action sheet
     override func viewDidLoad() {
         super.viewDidLoad()
         requestAuthorization()
+        zoom = initialZoom
+
         refreshMap(newLoc: true)
         refreshButtons()
         refreshScreen()
@@ -195,7 +201,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
             }
             self.heatMapToggle = !self.heatMapToggle
             if (self.heatMapToggle) {
-                self.heatMapLayer.weightedData = self.points
+                self.heatMapLayer.weightedData = self.heatMapPoints
                 self.heatMapLayer.map = self.mapView
             } else {
                 self.heatMapLayer.weightedData = []
@@ -238,7 +244,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
                         let lat = item["lat"]
                         let lng = item["lng"]
                         let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(lat as! CLLocationDegrees, lng as! CLLocationDegrees), intensity: 1.0)
-                        points.append(coords)
+                        heatMapPoints.append(coords)
                     }
                 } else {
                     print("Could not read the JSON.")
@@ -295,7 +301,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
     
     /// ADD comments about how the code and features work
     
-    /// Function to display nearby points of interest
+    /// Function to display nearby heatMapPoints of interest
     private func showNearby() {
         currentClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
             guard error == nil else {
@@ -485,8 +491,8 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
             mapTheme = MapThemes.lightThemeId
         }
         let mapID = GMSMapID(identifier: mapTheme)
+        camera = GMSCameraPosition.camera(withLatitude: currentLat, longitude: currentLong, zoom: zoom)
         if (newLoc) {
-            camera = GMSCameraPosition.camera(withLatitude: currentLat, longitude: currentLong, zoom: zoom)
             if (mapView == nil) {
                 mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
             } else {
@@ -496,12 +502,12 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
         if (darkModeSwitch) {
             mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
         }
-        nearbyIconVisibility(visible: zoom < 20 ? false : true)
+        nearbyIconVisibility(visible: zoom < 17 ? false : true)
         self.mapView.delegate = self
         mapView.settings.setAllGesturesEnabled(true)
         self.scene.addSubview(mapView)
         heatMapLayer.map = mapView
-        heatMapLayer.gradient = GMUGradient(colors: gradientColors, startPoints: gradientStartPoints, colorMapSize: 256)
+        heatMapLayer.gradient = GMUGradient(colors: gradientColors, startPoints: gradientStartheatMapPoints, colorMapSize: 256)
         mapView.isTrafficEnabled = trafficToggle
         mapView.isIndoorEnabled = indoorToggle
         marker.position = CLLocationCoordinate2D(latitude: currentLat, longitude: currentLong)
@@ -591,7 +597,7 @@ class MainViewController: UIViewController, CLLocationManagerDelegate, GMUCluste
 }
 
 /// Extension for the search view controller and results view controller to interact
-extension MainViewController: GMSAutocompleteResultsViewControllerDelegate {
+extension GoogleDemoApplicationsMainViewController: GMSAutocompleteResultsViewControllerDelegate {
     
     /// Once a location is confirmed, change currentLat and currentLong to reflect that location; updates the map to show that location
     func resultsController(_ resultsController: GMSAutocompleteResultsViewController,
@@ -610,7 +616,7 @@ extension MainViewController: GMSAutocompleteResultsViewControllerDelegate {
 }
 
 /// Allows the location icons to be clicked
-extension MainViewController: GMSMapViewDelegate {
+extension GoogleDemoApplicationsMainViewController: GMSMapViewDelegate {
     
     @objc(mapView:didTapMarker:) func mapView(_: GMSMapView, didTap marker: GMSMarker) -> Bool {
         if (!imageOn) {

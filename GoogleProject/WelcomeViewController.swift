@@ -19,7 +19,7 @@ class WelcomeViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        let vc: UIViewController = storyboard?.instantiateViewController(identifier: "main_vc") as! MainViewController
+        let vc: UIViewController = storyboard?.instantiateViewController(identifier: "main_vc") as! GoogleDemoApplicationsMainViewController
         vc.modalPresentationStyle = .fullScreen
         present(vc, animated: true)
     }
