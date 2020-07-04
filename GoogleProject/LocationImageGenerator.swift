@@ -46,7 +46,6 @@ class LocationImageGenerator {
                         UIGraphicsEndImageContext()
                         let tempImage = newImage.opac(alpha: 0.7)
                         localMarker.icon = tempImage?.circleMask
-                        print(localMarker.icon)
                     })
                 } else {
                     localMarker.icon = UIImage(systemName: "eye.slash.fill")

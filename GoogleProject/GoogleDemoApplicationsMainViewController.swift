@@ -23,7 +23,7 @@ import MaterialComponents.MaterialBanner
 import MaterialComponents.MaterialCards
 
 class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationManagerDelegate, GMUClusterManagerDelegate {
-    
+        
     private let initialZoom: Float = 10.0
     
     /// Indicates if the traffic map can be seen
@@ -70,9 +70,6 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     
     /// The cluster manager for the nearby recommendations feature; clusters icons to reduce clutter
     private var clusterManager: GMUClusterManager!
-
-    /// Indicates if the map is locked or not; unlocked through a button
-    private var lock: Bool = false
             
     /// Switches between a marker and an image
     private var imageOn: Bool = false
@@ -213,7 +210,6 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         })
         let radiusSearch = MDCActionSheetAction(title: "Radius Search", image: UIImage(systemName: "Home"), handler: { Void in
             self.radius()
-            self.lock = true
             let zoomCamera = GMSCameraUpdate.zoom(by: 13.0 - self.zoom)
             self.zoom = 13.0
             self.mapView.moveCamera(zoomCamera)
@@ -251,12 +247,36 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
                 }
             }
         } catch {
-          print(error.localizedDescription)
+            print(error.localizedDescription)
         }
     }
     
     private func radius() {
         overlayController.drawCircle(mapView: mapView, darkModeToggle: darkModeToggle, lat: currentLat, long: currentLong)
+        var tempList = [GMSMarker]()
+        for _ in 0...10 {
+            let tMarker: GMSMarker = GMSMarker()
+            tempList.append(tMarker)
+        }
+        for i in 0...10 {
+            let tempLat = Float(currentLat) + Float.random(in: -0.01..<0.01)
+            let tempLong = Float(currentLong) + Float.random(in: -0.01..<0.01)
+            overlayController.geocode(latitude: Double(tempLat), longitude: Double(tempLong)) { (placemark, error, pid) in
+                DispatchQueue.main.async {
+                    let tempMarker: GMSMarker = GMSMarker()
+                    let start = pid.index(pid.startIndex, offsetBy: 4)
+                    let range = start..<pid.endIndex
+                    let officialPid = pid[range]
+                    tempMarker.position = CLLocationCoordinate2D(latitude: Double(tempLat), longitude: Double(tempLong))
+                    self.locationImageController.viewImage(placeId: String(officialPid), localMarker: tempMarker)
+                    tempMarker.map = self.mapView
+                    tempList[i] = tempMarker
+                }
+            }
+        }
+        for m in tempList {
+            nearbyLocationMarkers.append(m)
+        }
     }
     
     @objc func darkModeActivate(sender: UIButton!) {
@@ -279,14 +299,6 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         nearbyLocationIDs.removeAllObjects()
         overlayController.clear()
         clusterManager.clearItems()
-    }
-    
-    /// Unlocks the screen
-    @objc func exitLock(sender: UIButton!) {
-        lock = false
-        refreshButtons()
-        refreshMap(newLoc: false)
-        refreshScreen()
     }
     
     /// Turns off all toggles
@@ -348,11 +360,6 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             }
         })
         definesPresentationContext = true
-    }
-    
-    /// Random number generator
-    private func randomScale() -> Double {
-        return Double(arc4random()) / Double(UINT32_MAX) * 2.0 - 1.0
     }
     
     
@@ -434,12 +441,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         
         generalButton.frame = CGRect(x: 0, y: self.view.frame.size.height - 868, width: 100, height: 50)
         generalButton.setTitleColor(darkModeToggle ? .white : .blue, for: .normal)
-        generalButton.setTitle(lock ? "Exit" : "Clear All", for: .normal)
-        if (!lock) {
-            generalButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
-        } else {
-            generalButton.addTarget(self, action: #selector(exitLock), for: .touchUpInside)
-        }
+        generalButton.setTitle( "Clear All", for: .normal)
+        generalButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
         self.view.addSubview(generalButton)
         
         clearButton.frame = CGRect(x: clearXOffset, y: self.view.frame.size.height - clearYOffset, width: clearWidth, height: clearHeight)
@@ -482,7 +485,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     private func refreshMap(newLoc: Bool, darkModeSwitch: Bool = false) {
         if (newLoc) {
             imageOn = false
-            marker.icon = UIImage(systemName: "default_marker.png")
+            marker.icon = UIImage(systemName: "button_my_location.png")
         }
         switch darkModeToggle {
         case true:
