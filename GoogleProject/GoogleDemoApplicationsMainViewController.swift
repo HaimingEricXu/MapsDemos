@@ -211,8 +211,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         })
         let radiusSearch = MDCActionSheetAction(title: "Radius Search", image: UIImage(systemName: "Home"), handler: { Void in
             self.radius()
-            let zoomCamera = GMSCameraUpdate.zoom(by: 13.0 - self.zoom)
-            self.zoom = 13.0
+            let zoomCamera = GMSCameraUpdate.zoom(by: 14.0 - self.zoom)
+            self.zoom = 14.0
             self.mapView.moveCamera(zoomCamera)
             self.refreshButtons()
             self.refreshMap(newLoc: false)
@@ -253,26 +253,27 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     }
     
     private func radius() {
-        overlayController.drawCircle(mapView: mapView, darkModeToggle: darkModeToggle, lat: currentLat, long: currentLong)
-        var tempList = [GMSMarker]()
-        for _ in 0...10 {
-            let tMarker: GMSMarker = GMSMarker()
-            tempList.append(tMarker)
+        for marker in radiusMarkers {
+            marker.map = nil
         }
-        for i in 0...10 {
+        radiusMarkers.removeAll()
+        overlayController.drawCircle(mapView: mapView, darkModeToggle: darkModeToggle, lat: currentLat, long: currentLong)
+        for _ in 0...10 {
             let tempLat = Float(currentLat) + Float.random(in: -0.01..<0.01)
             let tempLong = Float(currentLong) + Float.random(in: -0.01..<0.01)
             overlayController.geocode(latitude: Double(tempLat), longitude: Double(tempLong)) { (placemark, error, pid) in
                 DispatchQueue.main.async {
                     let tempMarker: GMSMarker = GMSMarker()
-                    let start = pid.index(pid.startIndex, offsetBy: 4)
-                    let range = start..<pid.endIndex
-                    let officialPid = pid[range]
-                    tempMarker.position = CLLocationCoordinate2D(latitude: Double(tempLat), longitude: Double(tempLong))
-                    self.locationImageController.viewImage(placeId: String(officialPid), localMarker: tempMarker)
-                    tempMarker.map = self.mapView
-                    tempList[i] = tempMarker
-                    self.radiusMarkers.append(tempMarker)
+                    if (pid.count >= 4) {
+                        print("hi")
+                        let start = pid.index(pid.startIndex, offsetBy: 4)
+                        let range = start..<pid.endIndex
+                        let officialPid = pid[range]
+                        tempMarker.position = CLLocationCoordinate2D(latitude: Double(tempLat), longitude: Double(tempLong))
+                        self.locationImageController.viewImage(placeId: String(officialPid), localMarker: tempMarker)
+                        tempMarker.map = self.mapView
+                        self.radiusMarkers.append(tempMarker)
+                    }
                 }
             }
         }
@@ -625,12 +626,14 @@ extension GoogleDemoApplicationsMainViewController: GMSAutocompleteResultsViewCo
 extension GoogleDemoApplicationsMainViewController: GMSMapViewDelegate {
     
     @objc(mapView:didTapMarker:) func mapView(_: GMSMapView, didTap marker: GMSMarker) -> Bool {
-        if (!imageOn) {
-            imageOn = true
-            locationImageController.viewImage(placeId: currentPlaceID, localMarker: marker)
-        } else {
-            self.marker.icon = UIImage(systemName: "default_marker.png")
-            imageOn = false
+        if (marker.position.latitude == currentLat && marker.position.longitude == currentLong) {
+            if (!imageOn) {
+                imageOn = true
+                locationImageController.viewImage(placeId: currentPlaceID, localMarker: marker)
+            } else {
+                self.marker.icon = UIImage(systemName: "default_marker.png")
+                imageOn = false
+            }
         }
         return true
     }
