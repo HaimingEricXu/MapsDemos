@@ -121,6 +121,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     /// Marker storage arrays
     private var nearbyLocationMarkers = [GMSMarker]()
     private let nearbyLocationIDs: NSMutableArray = []
+    private var radiusMarkers = [GMSMarker]()
     
     /// Material design elements for UI
     private let actionSheet = MDCActionSheetController(title: "Options", message: "Pick a feature")
@@ -271,11 +272,9 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
                     self.locationImageController.viewImage(placeId: String(officialPid), localMarker: tempMarker)
                     tempMarker.map = self.mapView
                     tempList[i] = tempMarker
+                    self.radiusMarkers.append(tempMarker)
                 }
             }
-        }
-        for m in tempList {
-            nearbyLocationMarkers.append(m)
         }
     }
     
@@ -295,6 +294,10 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         for marker in nearbyLocationMarkers {
             marker.map = nil
         }
+        for marker in radiusMarkers {
+            marker.map = nil
+        }
+        radiusMarkers.removeAll()
         nearbyLocationMarkers.removeAll()
         nearbyLocationIDs.removeAllObjects()
         overlayController.clear()
