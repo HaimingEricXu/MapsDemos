@@ -219,7 +219,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             self.refreshScreen()
         })
         
-        let actions: NSMutableArray = [independence, traffic, heatMap, indoor, nearbyRecs, panoramicView, radiusSearch]
+        let actions: NSMutableArray = [independence, traffic, indoor, panoramicView, nearbyRecs, heatMap, radiusSearch]
         for a in actions {
             actionSheet.addAction(a as! MDCActionSheetAction)
         }
