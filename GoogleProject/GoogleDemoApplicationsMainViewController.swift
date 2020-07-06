@@ -367,13 +367,12 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     }
     
     
-    private func nearbyIconVisibility(visible: Bool) {
-        for marker in nearbyLocationMarkers {
+    private func iconVisibility(visible: Bool, list: [GMSMarker]) {
+        for marker in list {
             marker.map = visible ? mapView : nil
         }
     }
-    
-    
+        
     /// Opens up the StreetViewController for panorama viewing
     private func openPanorama() {
         /// There shouldn't be the need for an optional for vc, as this is hardcoded to depict StreetViewController
@@ -490,6 +489,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         if (newLoc) {
             imageOn = false
             marker.icon = UIImage(systemName: "button_my_location.png")
+            marker.icon = GMSMarker.markerImage(with: .blue)
         }
         switch darkModeToggle {
         case true:
@@ -509,7 +509,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         if (darkModeSwitch) {
             mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
         }
-        nearbyIconVisibility(visible: zoom < 17 ? false : true)
+        iconVisibility(visible: zoom <= 18 ? false : true, list: nearbyLocationMarkers)
+        iconVisibility(visible: zoom < 14 ? false : true, list: radiusMarkers)
         self.mapView.delegate = self
         mapView.settings.setAllGesturesEnabled(true)
         self.scene.addSubview(mapView)
@@ -631,7 +632,8 @@ extension GoogleDemoApplicationsMainViewController: GMSMapViewDelegate {
                 imageOn = true
                 locationImageController.viewImage(placeId: currentPlaceID, localMarker: marker)
             } else {
-                self.marker.icon = UIImage(systemName: "default_marker.png")
+                marker.icon = UIImage(systemName: "button_my_location.png")
+                marker.icon = GMSMarker.markerImage(with: .blue)
                 imageOn = false
             }
         }
