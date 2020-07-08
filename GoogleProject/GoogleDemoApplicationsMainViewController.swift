@@ -171,7 +171,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         })
         let indoor = MDCActionSheetAction(title: "Toggle Indoor Map", image: nil, handler: { Void in
             let darkModeTemp = self.darkModeToggle
-            let indoorTemp = self.trafficToggle
+            let indoorTemp = self.indoorToggle
             if (self.independentToggle) {
                 self.toggleOff()
             }
@@ -180,8 +180,9 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
                 self.currentLat = self.sydneyOperaHouseLat
                 self.currentLong = self.sydneyOperaHouseLong
                 self.zoom = self.maximumZoom
+                self.refreshMap(newLoc: true, darkModeSwitch: self.independentToggle && darkModeTemp ? true : false)
             }
-            self.refreshMap(newLoc: true, darkModeSwitch: self.independentToggle && darkModeTemp ? true : false)
+            self.refreshMap(newLoc: false, darkModeSwitch: self.independentToggle && darkModeTemp ? true : false)
             self.refreshButtons()
             self.refreshScreen()
         })
@@ -252,6 +253,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         }
     }
     
+    
+    /// Adjust the size of the circle; add or remove points depending on the subset, but no need to always refresh
     private func radius() {
         for marker in radiusMarkers {
             marker.map = nil
