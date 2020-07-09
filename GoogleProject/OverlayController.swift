@@ -101,11 +101,11 @@ class OverlayController {
         activityView.removeFromSuperview()
     }
     
-    func drawCircle(mapView: GMSMapView, darkModeToggle: Bool, lat: Double, long: Double) {
+    func drawCircle(mapView: GMSMapView, darkModeToggle: Bool, lat: Double, long: Double, rad: Double = 2000) {
         let circle = GMSCircle()
         circle.map = nil
         circle.position = CLLocationCoordinate2D(latitude: lat, longitude: long)
-        circle.radius = 2000
+        circle.radius = rad
         circle.fillColor = .clear
         circle.strokeColor = .black
         circle.strokeWidth = 3.4

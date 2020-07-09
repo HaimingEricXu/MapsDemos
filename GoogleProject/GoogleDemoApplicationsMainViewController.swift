@@ -74,6 +74,9 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     /// Switches between a marker and an image
     private var imageOn: Bool = false
     
+    /// Locks the screen for radius search
+    private var locked: Bool = false
+    
     /// Indepedent features indicator and properies; may change depending on the device
     private let independentToggleIndicator = UIImageView(image: UIImage(systemName: "1.magnifyingglass"))
     private var indicatorXOffset: CGFloat = 57
@@ -114,6 +117,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     private var clearYOffset: CGFloat = 868
     private var clearWidth: CGFloat = 100
     private var clearHeight: CGFloat = 50
+    private let radSlider = UISlider(frame:CGRect(x: 0, y: 0, width: 300, height: 20))
+    let alertController = UIAlertController(title: "Alert", message: "Please exit radius search by clicking it in the action menu.", preferredStyle: .alert)
     
     /// The map theme (dark mode or light mode); initially set to light mode
     private var mapTheme = MapThemes.lightThemeId
@@ -136,6 +141,18 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         super.viewDidLoad()
         requestAuthorization()
         zoom = initialZoom
+        
+        radSlider.center = view.center
+        view.addSubview(radSlider)
+        view.bringSubviewToFront(radSlider)
+        radSlider.isHidden = true
+        radSlider.isContinuous = false
+        radSlider.addTarget(self, action: #selector(radSliderChanged(_:)), for: .valueChanged)
+        radSlider.maximumValue = 2000
+        radSlider.minimumValue = 500
+        radSlider.setValue(2000, animated: true)
+        
+        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
 
         refreshMap(newLoc: true)
         refreshButtons()
@@ -150,6 +167,10 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         clusterManager.setDelegate(self, mapDelegate: self)
         
         let independence = MDCActionSheetAction(title: "Toggle Independent Features", image: nil, handler: { Void in
+            if (self.locked) {
+                self.present(self.alertController, animated: true, completion: nil)
+                return
+            }
             self.independentToggle = !self.independentToggle
             if (self.independentToggle) {
                 self.toggleOff()
@@ -159,6 +180,10 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             self.refreshScreen()
         })
         let traffic = MDCActionSheetAction(title: "Toggle Traffic Overlay", image: nil, handler: { Void in
+            if (self.locked) {
+                self.present(self.alertController, animated: true, completion: nil)
+                return
+            }
             let darkModeTemp = self.darkModeToggle
             let trafficTemp = self.trafficToggle
             if (self.independentToggle) {
@@ -170,6 +195,10 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             self.refreshScreen()
         })
         let indoor = MDCActionSheetAction(title: "Toggle Indoor Map", image: nil, handler: { Void in
+            if (self.locked) {
+                self.present(self.alertController, animated: true, completion: nil)
+                return
+            }
             let darkModeTemp = self.darkModeToggle
             let indoorTemp = self.indoorToggle
             if (self.independentToggle) {
@@ -187,14 +216,26 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             self.refreshScreen()
         })
         let nearbyRecs = MDCActionSheetAction(title: "Nearby Recommendations", image: nil, handler: { Void in
+            if (self.locked) {
+                self.present(self.alertController, animated: true, completion: nil)
+                return
+            }
             self.showNearby()
             self.refreshButtons()
             self.refreshScreen()
         })
         let panoramicView = MDCActionSheetAction(title: "Panoramic View", image: nil, handler: { Void in
+            if (self.locked) {
+                self.present(self.alertController, animated: true, completion: nil)
+                return
+            }
             self.openPanorama()
         })
         let heatMap = MDCActionSheetAction(title: "Toggle Heat Map", image: UIImage(systemName: "Home"), handler: { Void in
+            if (self.locked) {
+                self.present(self.alertController, animated: true, completion: nil)
+                return
+            }
             if (self.independentToggle) {
                 self.toggleOff()
             }
@@ -211,12 +252,22 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             self.refreshScreen()
         })
         let radiusSearch = MDCActionSheetAction(title: "Radius Search", image: UIImage(systemName: "Home"), handler: { Void in
-            self.radius()
-            let zoomCamera = GMSCameraUpdate.zoom(by: 14.0 - self.zoom)
-            self.zoom = 14.0
-            self.mapView.moveCamera(zoomCamera)
+            self.locked = !self.locked
+            self.radSlider.isHidden = !self.locked
+            if (self.locked) {
+                self.radius()
+            } else {
+                let zoomCamera = GMSCameraUpdate.zoom(by: 14 - self.zoom)
+                self.zoom = 14
+                self.mapView.moveCamera(zoomCamera)
+                for marker in self.radiusMarkers {
+                    marker.map = nil
+                }
+                self.radiusMarkers.removeAll()
+                self.overlayController.clear()
+            }
             self.refreshButtons()
-            self.refreshMap(newLoc: false)
+            self.refreshMap(newLoc: true)
             self.refreshScreen()
         })
         
@@ -226,12 +277,14 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         }
     }
     
+    /// Zooms in when the cluster icons are clicked
     private func clusterManager(clusterManager: GMUClusterManager, didTapCluster cluster: GMUCluster) {
         let newCamera = GMSCameraPosition.camera(withTarget: cluster.position, zoom: mapView.camera.zoom + 1)
         let update = GMSCameraUpdate.setCamera(newCamera)
         mapView.moveCamera(update)
     }
     
+    /// Parses the dataset and then adds the data to the array; the array is the weighted data for the heatmap
     func executeHeatMap() {
         do {
             if let path = Bundle.main.url(forResource: "dataset", withExtension: "json") {
@@ -253,22 +306,30 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         }
     }
     
+    @objc func radSliderChanged(_ sender: UISlider!) {
+        radius(rad: Double(radSlider.value))
+    }
     
     /// Adjust the size of the circle; add or remove points depending on the subset, but no need to always refresh
-    private func radius() {
+    private func radius(rad: Double = 2000) {
         for marker in radiusMarkers {
             marker.map = nil
         }
+        let radiusFactor: Double = 150000 /// After trial and error, this value was perfect to ensure all points remained in the radius
+        let zoomFactor: Double = 1000 /// After trial and error, this value was best for adjusting zoom based on radius
+        let zoomCamera = GMSCameraUpdate.zoom(by: Float(14 + (Double(radSlider.maximumValue) - rad) / zoomFactor) - zoom)
+        zoom = Float(14 + (Double(radSlider.maximumValue) - rad) / zoomFactor)
+        mapView.moveCamera(zoomCamera)
         radiusMarkers.removeAll()
-        overlayController.drawCircle(mapView: mapView, darkModeToggle: darkModeToggle, lat: currentLat, long: currentLong)
-        for _ in 0...10 {
-            let tempLat = Float(currentLat) + Float.random(in: -0.01..<0.01)
-            let tempLong = Float(currentLong) + Float.random(in: -0.01..<0.01)
+        overlayController.clear()
+        overlayController.drawCircle(mapView: mapView, darkModeToggle: darkModeToggle, lat: currentLat, long: currentLong, rad: rad)
+        for _ in 0...5 {
+            let tempLat = Float(currentLat) + Float.random(in: -Float((rad / radiusFactor))..<Float((rad / radiusFactor)))
+            let tempLong = Float(currentLong) + Float.random(in: -Float((rad / radiusFactor))..<Float((rad / radiusFactor)))
             overlayController.geocode(latitude: Double(tempLat), longitude: Double(tempLong)) { (placemark, error, pid) in
                 DispatchQueue.main.async {
                     let tempMarker: GMSMarker = GMSMarker()
                     if (pid.count >= 4) {
-                        print("hi")
                         let start = pid.index(pid.startIndex, offsetBy: 4)
                         let range = start..<pid.endIndex
                         let officialPid = pid[range]
@@ -514,9 +575,9 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         }
         iconVisibility(visible: zoom <= 18 ? false : true, list: nearbyLocationMarkers)
         iconVisibility(visible: zoom < 14 ? false : true, list: radiusMarkers)
-        self.mapView.delegate = self
-        mapView.settings.setAllGesturesEnabled(true)
-        self.scene.addSubview(mapView)
+        mapView.delegate = self
+        mapView.settings.setAllGesturesEnabled(!locked)
+        scene.addSubview(mapView)
         heatMapLayer.map = mapView
         heatMapLayer.gradient = GMUGradient(colors: gradientColors, startPoints: gradientStartheatMapPoints, colorMapSize: 256)
         mapView.isTrafficEnabled = trafficToggle
@@ -540,6 +601,10 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         zoomInButton.collapse(true) {
             zoomInButton.expand(true, completion: nil)
         }
+        if (locked) {
+            present(alertController, animated: true, completion: nil)
+            return
+        }
         let zoomCamera = GMSCameraUpdate.zoom(by: 2.0)
         mapView.moveCamera(zoomCamera)
         zoom = min(mapView.camera.zoom, maximumZoom)
@@ -553,6 +618,10 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         zoomOutButton.collapse(true) {
             zoomOutButton.expand(true, completion: nil)
         }
+        if (locked) {
+            present(alertController, animated: true, completion: nil)
+            return
+        }
         let zoomCamera = GMSCameraUpdate.zoom(by: -2.0)
         mapView.moveCamera(zoomCamera)
         zoom = max(mapView.camera.zoom, 0)
@@ -565,6 +634,10 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     @objc private func goToCurrent(currentLocButton: MDCFloatingButton){
         currentLocButton.collapse(true) {
             currentLocButton.expand(true, completion: nil)
+        }
+        if (locked) {
+            present(alertController, animated: true, completion: nil)
+            return
         }
         placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
             guard error == nil && placeLikelihoodList != nil else {
@@ -592,6 +665,10 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     @objc private func infoButtonTapped(infoButton: MDCFloatingButton){
         infoButton.collapse(true) {
             infoButton.expand(true, completion: nil)
+        }
+        if (locked) {
+            present(alertController, animated: true, completion: nil)
+            return
         }
         let popOverVC = storyboard?.instantiateViewController(withIdentifier: "popup_vc") as! PopUpViewController
         popOverVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
