@@ -22,23 +22,34 @@ class LocationImageGenerator {
     private let dim: Double = 110
     
     /// Sets a marker's icon to a place's image, if it has one
-    func viewImage(placeId: String, localMarker: GMSMarker, tapped: Bool = true, width: Int = 110, height: Int = 110) {
+    func viewImage(placeId: String, localMarker: GMSMarker, imageView: UIImageView, select: Bool = false, tapped: Bool = true, width: Int = 110, height: Int = 110) {
         let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
         let fields: GMSPlaceField = .photos
         placesClient.fetchPlace(fromPlaceID: placeId, placeFields: fields, sessionToken: nil, callback: {
             (place: GMSPlace?, error: Error?) in
-            guard error == nil && place != nil else {
+            guard error == nil else {
+                print("Some error occured here: \(error?.localizedDescription ?? "")")
+                return
+            }
+            guard place != nil else {
+                print("The location is nil or does not exist: \(error?.localizedDescription ?? "")")
+                return
+            }
+            guard let place = place else {
                 print("Error loading photo metadata: \(error?.localizedDescription ?? "")")
                 return
             }
-            if let place = place {
-                if (place.photos != nil) {
-                    let photoMetadata: GMSPlacePhotoMetadata = place.photos![0]
-                    placesClient.loadPlacePhoto(photoMetadata, callback: { (photo, error) -> Void in
-                        guard error == nil else {
-                            print("Error loading photo metadata: \(error?.localizedDescription ?? "")")
-                            return
-                        }
+            if (place.photos != nil) {
+                guard let photoMetadata = place.photos?[0] else {
+                    print("There is no photo data for location: \(error?.localizedDescription ?? "")")
+                    return
+                }
+                placesClient.loadPlacePhoto(photoMetadata, callback: { (photo, error) -> Void in
+                    guard error == nil else {
+                        print("Some error occured: \(error?.localizedDescription ?? "")")
+                        return
+                    }
+                    if (!select) {
                         let size = CGSize(width: width, height: height)
                         UIGraphicsBeginImageContextWithOptions(size, false, 0.0);
                         photo?.draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
@@ -46,40 +57,19 @@ class LocationImageGenerator {
                         UIGraphicsEndImageContext()
                         let tempImage = newImage.opac(alpha: 0.7)
                         localMarker.icon = tempImage?.circleMask
-                    })
-                } else {
+                    } else {
+                        let size = CGSize(width: self.dim, height: self.dim)
+                        UIGraphicsBeginImageContextWithOptions(size, false, 0.0);
+                        photo?.draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
+                        let newImage: UIImage = UIGraphicsGetImageFromCurrentImageContext()!
+                        UIGraphicsEndImageContext()
+                        imageView.image = newImage
+                    }
+                })
+            } else {
+                if (!select) {
                     localMarker.icon = UIImage(systemName: "eye.slash.fill")
                     localMarker.icon?.withTintColor(.black)
-                }
-            }
-        })
-    }
-    
-    func viewImageOnCard(placeLoc: String, imageView: UIImageView, tapped: Bool = true) {
-        let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
-        let fields: GMSPlaceField = GMSPlaceField(rawValue: UInt(GMSPlaceField.photos.rawValue))!
-        placesClient.fetchPlace(fromPlaceID: String(placeLoc), placeFields: fields, sessionToken: nil, callback: {
-            (place: GMSPlace?, error: Error?) in
-            guard error == nil && place != nil else {
-                print("Error loading photo metadata: \(error?.localizedDescription ?? "")")
-                return
-            }
-            if let place = place {
-                if (place.photos != nil) {
-                    let photoMetadata: GMSPlacePhotoMetadata = place.photos![0]
-                    placesClient.loadPlacePhoto(photoMetadata, callback: { (photo, error) -> Void in
-                        if let error = error {
-                            print("Error loading photo metadata: \(error.localizedDescription)")
-                            return
-                        } else {
-                            let size = CGSize(width: self.dim, height: self.dim)
-                            UIGraphicsBeginImageContextWithOptions(size, false, 0.0);
-                            photo?.draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
-                            let newImage: UIImage = UIGraphicsGetImageFromCurrentImageContext()!
-                            UIGraphicsEndImageContext()
-                            imageView.image = newImage
-                        }
-                    })
                 } else {
                     imageView.image = UIImage(systemName: "eye.slash.fill")
                 }

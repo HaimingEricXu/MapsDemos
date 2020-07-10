@@ -17,7 +17,7 @@ class OverlayController {
     private var long: Double = 0.0
 
     /// Heatmap buffering
-    private var activityView = UIActivityIndicatorView(style: .whiteLarge)
+    private lazy var activityView = UIActivityIndicatorView(style: .whiteLarge)
     
     func clear() {
         for x in overlays {
@@ -26,7 +26,8 @@ class OverlayController {
     }
     
     func fetchData(completion: @escaping ([String : Any]?, Error?) -> Void) {
-        let url = URL(string: "https://maps.googleapis.com/maps/api/geocode/json?&latlng=\(lat),\(long)&key=AIzaSyC3a6xaPcOk9S1gFxf9iGrNSfLHOWxOxN8")!
+        let apiKey: String = "AIzaSyC3a6xaPcOk9S1gFxf9iGrNSfLHOWxOxN8"
+        let url = URL(string: "https://maps.googleapis.com/maps/api/geocode/json?&latlng=\(lat),\(long)&key=" + apiKey)!
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             guard let data = data else { return }
             do {
@@ -107,23 +108,9 @@ class OverlayController {
         circle.position = CLLocationCoordinate2D(latitude: lat, longitude: long)
         circle.radius = rad
         circle.fillColor = .clear
-        circle.strokeColor = .black
+        circle.strokeColor = darkModeToggle ? .white : .black
         circle.strokeWidth = 3.4
         circle.map = mapView
         overlays.append(circle)
-    }
-    
-    /// Draws a pre-set rectangle in specified area; can/will change this to be more flexible and appear in more places
-    func drawRect(mapView: GMSMapView, darkModeToggle: Bool) {
-        let rect = GMSMutablePath()
-        rect.add(CLLocationCoordinate2D(latitude: 37.36, longitude: -122.0))
-        rect.add(CLLocationCoordinate2D(latitude: 37.45, longitude: -122.0))
-        rect.add(CLLocationCoordinate2D(latitude: 37.45, longitude: -122.2))
-        rect.add(CLLocationCoordinate2D(latitude: 37.36, longitude: -122.2))
-        let polygon = GMSPolygon(path: rect)
-        polygon.fillColor = UIColor(red: 0.25, green: 0, blue: 0, alpha: 0.05);
-        polygon.strokeColor = darkModeToggle ? .white : .black
-        polygon.strokeWidth = 2
-        polygon.map = mapView
     }
 }

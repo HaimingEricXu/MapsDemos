@@ -20,15 +20,8 @@ import GooglePlaces
 class StreetViewController: UIViewController {
     
     @IBOutlet private weak var backButton: UIButton!
-    private var lat: Double = 0.0
-    private var long: Double = 0.0
+    private var coord = CLLocationCoordinate2D()
     private var dark: Bool = false
-    
-    private var centerx: Int = 0
-    private var centery: Int = 74
-    private var width: Int = 414
-    private var height: Int = 825
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,21 +30,14 @@ class StreetViewController: UIViewController {
     }
     
     private func showMap() {
-        let panoView = GMSPanoramaView.panorama(withFrame: CGRect(x: centerx, y: centery, width: width, height: height), nearCoordinate: CLLocationCoordinate2D(latitude: lat, longitude: long))
+        let panoView = GMSPanoramaView.panorama(withFrame: CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height), nearCoordinate: coord)
         self.view.addSubview(panoView)
-        panoView.moveNearCoordinate(CLLocationCoordinate2D(latitude: lat, longitude: long))
+        panoView.moveNearCoordinate(coord)
         self.view.bringSubviewToFront(backButton)
     }
     
-    func setLat(newLat: Double) {
-        lat = newLat
-    }
-    
-    func setLong(newLong: Double) {
-        long = newLong
-    }
-    
-    func setDark(darkMode: Bool) {
+    func setValues(newLat: Double, newLong: Double, darkMode: Bool) {
+        coord = CLLocationCoordinate2D(latitude: newLat, longitude: newLong)
         dark = darkMode
     }
     

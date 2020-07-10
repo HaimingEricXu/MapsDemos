@@ -15,6 +15,7 @@
 
 import UIKit
 import MaterialComponents.MDCCard
+import GoogleMaps
 
 class PopUpViewController: UIViewController {
 
@@ -38,7 +39,7 @@ class PopUpViewController: UIViewController {
         infoCard = MDCCard(frame: CGRect(x: xOffset, y: yOffset, width: dim, height: dim))
         let imageView = UIImageView()
         imageView.frame = CGRect(x: xOffset, y: yOffset, width: dim, height: dim * 2 / 3)
-        imageController.viewImageOnCard(placeLoc: location, imageView: imageView)
+        imageController.viewImage(placeId: location, localMarker: GMSMarker(), imageView: imageView, select: true)
         
         let infoText =  UITextView(frame: CGRect(x: xOffset, y: yOffset + imageView.frame.height, width: dim, height: dim / 6))
         infoText.text = "The current coordinates are (" + String(locationLat) + ", " + String(locationLong) + ")."

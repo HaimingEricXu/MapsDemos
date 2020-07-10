@@ -141,7 +141,6 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         super.viewDidLoad()
         requestAuthorization()
         zoom = initialZoom
-        
         radSlider.center = view.center
         view.addSubview(radSlider)
         view.bringSubviewToFront(radSlider)
@@ -151,21 +150,12 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         radSlider.maximumValue = 2000
         radSlider.minimumValue = 500
         radSlider.setValue(2000, animated: true)
-        
-        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-
+        alertController.addAction(UIAlertAction(title: "Ok", style: .cancel, handler: nil))
         refreshMap(newLoc: true)
         refreshButtons()
         refreshScreen()
         heatMapLayer.map = mapView
         executeHeatMap()
-        
-        let iconGenerator = GMUDefaultClusterIconGenerator()
-        let algorithm = GMUNonHierarchicalDistanceBasedAlgorithm()
-        let renderer = GMUDefaultClusterRenderer(mapView: mapView, clusterIconGenerator: iconGenerator)
-        clusterManager = GMUClusterManager(map: mapView, algorithm: algorithm, renderer: renderer)
-        clusterManager.setDelegate(self, mapDelegate: self)
-        
         let independence = MDCActionSheetAction(title: "Toggle Independent Features", image: nil, handler: { Void in
             if (self.locked) {
                 self.present(self.alertController, animated: true, completion: nil)
@@ -231,7 +221,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             }
             self.openPanorama()
         })
-        let heatMap = MDCActionSheetAction(title: "Toggle Heat Map", image: UIImage(systemName: "Home"), handler: { Void in
+        let heatMap = MDCActionSheetAction(title: "Toggle Heat Map", image: nil, handler: { Void in
             if (self.locked) {
                 self.present(self.alertController, animated: true, completion: nil)
                 return
@@ -251,13 +241,14 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             self.refreshMap(newLoc: false, darkModeSwitch: true)
             self.refreshScreen()
         })
-        let radiusSearch = MDCActionSheetAction(title: "Radius Search", image: UIImage(systemName: "Home"), handler: { Void in
+        let radiusSearch = MDCActionSheetAction(title: "Radius Search", image: nil, handler: { Void in
             self.locked = !self.locked
             self.radSlider.isHidden = !self.locked
             if (self.locked) {
                 self.radius()
             } else {
                 let zoomCamera = GMSCameraUpdate.zoom(by: 14 - self.zoom)
+                self.radSlider.value = 2000
                 self.zoom = 14
                 self.mapView.moveCamera(zoomCamera)
                 for marker in self.radiusMarkers {
@@ -270,11 +261,15 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             self.refreshMap(newLoc: true)
             self.refreshScreen()
         })
-        
         let actions: NSMutableArray = [independence, traffic, indoor, panoramicView, nearbyRecs, heatMap, radiusSearch]
         for a in actions {
             actionSheet.addAction(a as! MDCActionSheetAction)
         }
+        let iconGenerator = GMUDefaultClusterIconGenerator()
+        let algorithm = GMUNonHierarchicalDistanceBasedAlgorithm()
+        let renderer = GMUDefaultClusterRenderer(mapView: mapView, clusterIconGenerator: iconGenerator)
+        clusterManager = GMUClusterManager(map: mapView, algorithm: algorithm, renderer: renderer)
+        clusterManager.setDelegate(self, mapDelegate: self)
     }
     
     /// Zooms in when the cluster icons are clicked
@@ -334,7 +329,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
                         let range = start..<pid.endIndex
                         let officialPid = pid[range]
                         tempMarker.position = CLLocationCoordinate2D(latitude: Double(tempLat), longitude: Double(tempLong))
-                        self.locationImageController.viewImage(placeId: String(officialPid), localMarker: tempMarker)
+                        self.locationImageController.viewImage(placeId: String(officialPid), localMarker: tempMarker, imageView: UIImageView())
                         tempMarker.map = self.mapView
                         self.radiusMarkers.append(tempMarker)
                     }
@@ -344,6 +339,10 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     }
     
     @objc func darkModeActivate(sender: UIButton!) {
+        if (locked) {
+            present(alertController, animated: true, completion: nil)
+            return
+        }
         let tempToggle: Bool = !darkModeToggle
         if (independentToggle) {
             toggleOff()
@@ -356,6 +355,10 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     
     /// Clears all icon images and overlays
     @objc func clearAll(sender: UIButton!) {
+        if (locked) {
+            present(alertController, animated: true, completion: nil)
+            return
+        }
         for marker in nearbyLocationMarkers {
             marker.map = nil
         }
@@ -405,7 +408,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
                     self.nearbyLocationIDs.add(loc.place.placeID!)
                 }
                 for locationMarker in self.nearbyLocationMarkers {
-                    self.locationImageController.viewImage(placeId: self.nearbyLocationIDs[counter] as! String, localMarker: locationMarker, tapped: false)
+                    self.locationImageController.viewImage(placeId: self.nearbyLocationIDs[counter] as! String, localMarker: locationMarker, imageView: UIImageView(), tapped: false)
                     locationMarker.map = self.mapView
                     counter += 1
                     self.clusterManager.add(POIItem(position: CLLocationCoordinate2DMake(locationMarker.position.latitude, locationMarker.position.longitude), name: "New Item"))
@@ -441,9 +444,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     private func openPanorama() {
         /// There shouldn't be the need for an optional for vc, as this is hardcoded to depict StreetViewController
         let vc = storyboard?.instantiateViewController(identifier: "street_vc") as! StreetViewController
-        vc.setLat(newLat: currentLat)
-        vc.setLong(newLong: currentLong)
-        vc.setDark(darkMode: darkModeToggle)
+        vc.setValues(newLat: currentLat, newLong: currentLong, darkMode: darkModeToggle)
         vc.modalPresentationStyle = .fullScreen
         present(vc, animated: true)
     }
@@ -505,19 +506,16 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         darkModeButton.tintColor = darkModeToggle ? .yellow : .blue
         darkModeButton.addTarget(self, action: #selector(darkModeActivate), for: .touchUpInside)
         self.view.addSubview(darkModeButton)
-        
         generalButton.frame = CGRect(x: 0, y: self.view.frame.size.height - 868, width: 100, height: 50)
         generalButton.setTitleColor(darkModeToggle ? .white : .blue, for: .normal)
         generalButton.setTitle( "Clear All", for: .normal)
         generalButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
         self.view.addSubview(generalButton)
-        
         clearButton.frame = CGRect(x: clearXOffset, y: self.view.frame.size.height - clearYOffset, width: clearWidth, height: clearHeight)
         clearButton.setTitleColor(darkModeToggle ? .white : .blue, for: .normal)
         clearButton.setTitle("Clear All", for: .normal)
         clearButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
         self.view.addSubview(clearButton)
-        
         let buttons = [optionsButton, zoomOutButton, zoomInButton, currentLocButton, infoButton]
         let iconImages = ["gear", "minus", "plus", "location", "info"]
         optionsButton.addTarget(self, action: #selector(optionsButtonTapped(optionsButton:)), for: .touchUpInside)
@@ -640,8 +638,12 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             return
         }
         placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
-            guard error == nil && placeLikelihoodList != nil else {
-                print("Current place error: \(error?.localizedDescription ?? "")")
+            guard error == nil else {
+                print("Some error occured: \(error?.localizedDescription ?? "")")
+                return
+            }
+            guard placeLikelihoodList != nil else {
+                print("No likely locations: \(error?.localizedDescription ?? "")")
                 return
             }
             guard placeLikelihoodList?.likelihoods.first != nil else {
@@ -650,7 +652,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             }
             let place = placeLikelihoodList?.likelihoods.first?.place
             guard place != nil else {
-                print("Current place error: \(error?.localizedDescription ?? "")")
+                print("The current place is nil or doesn't exist: \(error?.localizedDescription ?? "")")
                 return
             }
             self.currentLat = Double(place?.coordinate.latitude ?? 0.0)
@@ -710,7 +712,7 @@ extension GoogleDemoApplicationsMainViewController: GMSMapViewDelegate {
         if (marker.position.latitude == currentLat && marker.position.longitude == currentLong) {
             if (!imageOn) {
                 imageOn = true
-                locationImageController.viewImage(placeId: currentPlaceID, localMarker: marker)
+                locationImageController.viewImage(placeId: currentPlaceID, localMarker: marker, imageView: UIImageView())
             } else {
                 marker.icon = UIImage(systemName: "button_my_location.png")
                 marker.icon = GMSMarker.markerImage(with: .blue)
