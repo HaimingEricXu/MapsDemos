@@ -21,11 +21,9 @@ class StreetViewController: UIViewController {
     
     @IBOutlet private weak var backButton: UIButton!
     private var coord = CLLocationCoordinate2D()
-    private var dark: Bool = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = dark ? .black : .white
         showMap()
     }
     
@@ -36,9 +34,8 @@ class StreetViewController: UIViewController {
         self.view.bringSubviewToFront(backButton)
     }
     
-    func setValues(newLat: Double, newLong: Double, darkMode: Bool) {
+    func setValues(newLat: Double, newLong: Double) {
         coord = CLLocationCoordinate2D(latitude: newLat, longitude: newLong)
-        dark = darkMode
     }
     
     @IBAction private func menu(_ sender: Any) {

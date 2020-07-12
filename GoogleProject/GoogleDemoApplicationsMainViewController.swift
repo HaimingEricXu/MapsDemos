@@ -23,8 +23,7 @@ import MaterialComponents.MaterialBanner
 import MaterialComponents.MaterialCards
 
 class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationManagerDelegate, GMUClusterManagerDelegate {
-    
-    /// The initial zoom value; any change here is universal, so no need to look for zoom values when the app is booted
+        
     private let initialZoom: Float = 10.0
     
     /// Indicates if the traffic map can be seen
@@ -443,7 +442,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     private func openPanorama() {
         /// There shouldn't be the need for an optional for vc, as this is hardcoded to depict StreetViewController
         let vc = storyboard?.instantiateViewController(identifier: "street_vc") as! StreetViewController
-        vc.setValues(newLat: currentLat, newLong: currentLong, darkMode: darkModeToggle)
+        vc.setValues(newLat: currentLat, newLong: currentLong)
         vc.modalPresentationStyle = .fullScreen
         present(vc, animated: true)
     }
