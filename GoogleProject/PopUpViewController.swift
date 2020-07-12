@@ -23,8 +23,7 @@ class PopUpViewController: UIViewController {
     private var location: String = ""
     private var infoCard = MDCCard()
     private var dim: CGFloat = 300
-    private var locationLat: Double!
-    private var locationLong: Double!
+    private var coord = CLLocationCoordinate2D()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -42,7 +41,7 @@ class PopUpViewController: UIViewController {
         imageController.viewImage(placeId: location, localMarker: GMSMarker(), imageView: imageView, select: true)
         
         let infoText =  UITextView(frame: CGRect(x: xOffset, y: yOffset + imageView.frame.height, width: dim, height: dim / 6))
-        infoText.text = "The current coordinates are (" + String(locationLat) + ", " + String(locationLong) + ")."
+        infoText.text = "The current coordinates are (" + String(coord.latitude) + ", " + String(coord.longitude) + ")."
         infoText.font = UIFont.systemFont(ofSize: 10)
         infoText.centerVertically()
         
@@ -72,16 +71,9 @@ class PopUpViewController: UIViewController {
         });
     }
     
-    func setLocation(loc: String) {
+    func setLocation(loc: String, lat: Double, long: Double) {
         location = loc
-    }
-    
-    func setLat(lat: Double) {
-        locationLat = lat
-    }
-    
-    func setLong(long: Double) {
-        locationLong = long
+        coord = CLLocationCoordinate2D(latitude: lat, longitude: long)
     }
     
     @objc private func removeAnimate() {

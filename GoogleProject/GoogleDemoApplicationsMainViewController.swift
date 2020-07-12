@@ -62,9 +62,6 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     /// The outlet to call methods in LocationImageGenerator
     private let locationImageController = LocationImageGenerator()
     
-    /// The current location of the iPhone using the app
-    private let currentClient: GMSPlacesClient = GMSPlacesClient.shared()
-    
     /// Places client to get data on the iPhone's current location
     private let placesClient: GMSPlacesClient = GMSPlacesClient.shared()
     
@@ -384,7 +381,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         
     /// Function to display nearby heatMapPoints of interest
     private func showNearby() {
-        currentClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
+        placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
             guard error == nil else {
                 print("Current place error: \(error?.localizedDescription ?? "")")
                 return
@@ -672,9 +669,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         }
         let popOverVC = storyboard?.instantiateViewController(withIdentifier: "popup_vc") as! PopUpViewController
         popOverVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
-        popOverVC.setLocation(loc: currentPlaceID)
-        popOverVC.setLat(lat: currentLat)
-        popOverVC.setLong(long: currentLong)
+        popOverVC.setLocation(loc: currentPlaceID, lat: currentLat, long: currentLong)
         self.present(popOverVC, animated: true)
     }
     
@@ -690,7 +685,7 @@ extension GoogleDemoApplicationsMainViewController: GMSAutocompleteResultsViewCo
     /// Once a location is confirmed, change currentLat and currentLong to reflect that location; updates the map to show that location
     func resultsController(_ resultsController: GMSAutocompleteResultsViewController,
                          didAutocompleteWith place: GMSPlace) {
-        currentLat = place.coordinate.latitude
+        currentLat = place.coordinate.latitude /// Could potentially replace currentLat/currentLong with just one CLLocation2D object
         currentLong = place.coordinate.longitude
         currentPlaceID = place.placeID!
         refreshMap(newLoc: true)
