@@ -21,11 +21,9 @@ import GooglePlaces
 class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-//        #error Register for API keys and enter them below; then, delete this line
-//        GMSServices.provideAPIKey("")
-//        GMSPlacesClient.provideAPIKey("")
-        GMSServices.provideAPIKey("AIzaSyC3a6xaPcOk9S1gFxf9iGrNSfLHOWxOxN8")
-        GMSPlacesClient.provideAPIKey("AIzaSyCOKNyDTI9HNGP6XWHFTXvzTVG4Ur2dzec")
+        #error Register for API keys and enter them below; then, delete this line
+        GMSServices.provideAPIKey("")
+        GMSPlacesClient.provideAPIKey("")
         return true
     }
 
