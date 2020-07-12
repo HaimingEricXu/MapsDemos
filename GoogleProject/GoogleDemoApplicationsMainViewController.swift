@@ -23,7 +23,8 @@ import MaterialComponents.MaterialBanner
 import MaterialComponents.MaterialCards
 
 class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationManagerDelegate, GMUClusterManagerDelegate {
-        
+    
+    /// The initial zoom value; any change here is universal, so no need to look for zoom values when the app is booted
     private let initialZoom: Float = 10.0
     
     /// Indicates if the traffic map can be seen
@@ -381,9 +382,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         heatMapLayer.weightedData = []
         heatMapLayer.map = nil
     }
-    
-    /// ADD comments about how the code and features work
-    
+        
     /// Function to display nearby heatMapPoints of interest
     private func showNearby() {
         currentClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
