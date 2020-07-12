@@ -572,7 +572,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
         }
         iconVisibility(visible: zoom <= 18 ? false : true, list: nearbyLocationMarkers)
-        iconVisibility(visible: zoom < 14 ? false : true, list: radiusMarkers)
+        //iconVisibility(visible: zoom < 14 ? false : true, list: radiusMarkers)
         mapView.delegate = self
         mapView.settings.setAllGesturesEnabled(!locked)
         scene.addSubview(mapView)
