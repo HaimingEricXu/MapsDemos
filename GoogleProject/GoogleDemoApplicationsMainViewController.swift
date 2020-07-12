@@ -141,6 +141,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     override func viewDidLoad() {
         super.viewDidLoad()
         requestAuthorization()
+        
+        /// The following lines set up the zoom and zoom bar for the radius search feature.
         zoom = initialZoom
         radSlider.center = view.center
         view.addSubview(radSlider)
@@ -151,12 +153,20 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         radSlider.maximumValue = 2000
         radSlider.minimumValue = 500
         radSlider.setValue(2000, animated: true)
+        
+        /// This sets up the alert controller which pops up when the user attempts to click on another feature while in the radius search feature
         alertController.addAction(UIAlertAction(title: "Ok", style: .cancel, handler: nil))
+        
+        /// Sets up the map, buttons, and screen
         refreshMap(newLoc: true)
         refreshButtons()
         refreshScreen()
+        
+        /// Heatmap preprocessing, so we don't need to do it whenever it is toggled
         heatMapLayer.map = mapView
         executeHeatMap()
+        
+        /// Next few lines add the buttons to the action menu
         let independence = MDCActionSheetAction(title: "Toggle Independent Features", image: nil, handler: { Void in
             if (self.locked) {
                 self.present(self.alertController, animated: true, completion: nil)
@@ -266,6 +276,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         for a in actions {
             actionSheet.addAction(a as! MDCActionSheetAction)
         }
+        
+        /// These lines setup the cluster manager for the nearby recommendations feature
         let iconGenerator = GMUDefaultClusterIconGenerator()
         let algorithm = GMUNonHierarchicalDistanceBasedAlgorithm()
         let renderer = GMUDefaultClusterRenderer(mapView: mapView, clusterIconGenerator: iconGenerator)
@@ -288,8 +300,12 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
                 let json = try JSONSerialization.jsonObject(with: data, options: [])
                 if let object = json as? [[String: Any]] {
                     for item in object {
+                        
+                        /// Given the way the code parses through the json file, the lat and long can be retrieved via item like a dictionary
                         let lat = item["lat"]
                         let lng = item["lng"]
+                        
+                        /// Creates a weighted coordinate for that lat and long; a weighted coordinate is how the heatmap gets different colors
                         let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(lat as! CLLocationDegrees, lng as! CLLocationDegrees), intensity: 1.0)
                         heatMapPoints.append(coords)
                     }
@@ -302,28 +318,45 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         }
     }
     
+    /// Triggers when the radius slider is touched (radius search feature); calls the radius function with a new radius so new locations can appear
     @objc func radSliderChanged(_ sender: UISlider!) {
         radius(rad: Double(radSlider.value))
     }
     
     /// Adjust the size of the circle; add or remove points depending on the subset, but no need to always refresh
     private func radius(rad: Double = 2000) {
+        
+        /// Clears all previous markers
         for marker in radiusMarkers {
             marker.map = nil
         }
-        let radiusFactor: Double = 150000 /// After trial and error, this value was perfect to ensure all points remained in the radius
-        let zoomFactor: Double = 1000 /// After trial and error, this value was best for adjusting zoom based on radius
+        
+        /// After trial and error, this value was perfect to ensure all points remained in the radius
+        let radiusFactor: Double = 150000
+        
+        /// After trial and error, this value was best for adjusting zoom based on radius
+        let zoomFactor: Double = 1000
+        
+        /// After trial and error, these values looked best across all phones
         let zoomCamera = GMSCameraUpdate.zoom(by: Float(14 + (Double(radSlider.maximumValue) - rad) / zoomFactor) - zoom)
+        
+        /// Sets up the map, giving it a clean slate
         zoom = Float(14 + (Double(radSlider.maximumValue) - rad) / zoomFactor)
         mapView.moveCamera(zoomCamera)
         radiusMarkers.removeAll()
         overlayController.clear()
+        
+        /// Draws a circle of the appropriate radius, with the marker in the center
         overlayController.drawCircle(mapView: mapView, darkModeToggle: darkModeToggle, lat: currentLat, long: currentLong, rad: rad)
+        
+        /// Adds five randomly generated points to the map
         for _ in 0...5 {
             let tempLat = Float(currentLat) + Float.random(in: -Float((rad / radiusFactor))..<Float((rad / radiusFactor)))
             let tempLong = Float(currentLong) + Float.random(in: -Float((rad / radiusFactor))..<Float((rad / radiusFactor)))
             overlayController.geocode(latitude: Double(tempLat), longitude: Double(tempLong)) { (placemark, error, pid) in
                 DispatchQueue.main.async {
+                    
+                    /// Creates a marker for this lat and long; attempts to find an image
                     let tempMarker: GMSMarker = GMSMarker()
                     if (pid.count >= 4) {
                         let start = pid.index(pid.startIndex, offsetBy: 4)
@@ -339,7 +372,10 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         }
     }
     
+    /// Activates system-wide dark mode (cloud based)
     @objc func darkModeActivate(sender: UIButton!) {
+        
+        /// Not allowed to do so when in radius search mode (for consistency)
         if (locked) {
             present(alertController, animated: true, completion: nil)
             return
@@ -373,7 +409,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         clusterManager.clearItems()
     }
     
-    /// Turns off all toggles
+    /// Turns off all toggles and clears the heatmap dataset; radius search markers are automatically cleared whenever the feature is exited
     private func toggleOff() {
         trafficToggle = false
         indoorToggle = false
@@ -406,12 +442,16 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
                     self.nearbyLocationMarkers.append(temp)
                     self.nearbyLocationIDs.add(loc.place.placeID!)
                 }
+                
+                /// Adds the marker to the cluster manager and finds images for the markers
                 for locationMarker in self.nearbyLocationMarkers {
                     self.locationImageController.viewImage(placeId: self.nearbyLocationIDs[counter] as! String, localMarker: locationMarker, imageView: UIImageView(), tapped: false)
                     locationMarker.map = self.mapView
                     counter += 1
                     self.clusterManager.add(POIItem(position: CLLocationCoordinate2DMake(locationMarker.position.latitude, locationMarker.position.longitude), name: "New Item"))
                 }
+                
+                /// Zooms in the current location
                 self.placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
                     guard error == nil && placeLikelihoodList != nil else {
                         print("Current place error: \(error?.localizedDescription ?? "")")
@@ -432,7 +472,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         definesPresentationContext = true
     }
     
-    
+    /// General function that takes in a list of markers and sets them to given visibility
     private func iconVisibility(visible: Bool, list: [GMSMarker]) {
         for marker in list {
             marker.map = visible ? mapView : nil
@@ -448,9 +488,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         present(vc, animated: true)
     }
     
-    /* Changes the colors of the buttons, search bar, action sheet, and search results view controller (depending on whether or not dark mode is on)
-    * Adds the search bar to the screen
-    */
+    //// Changes the colors of the buttons, search bar, action sheet, and search results view controller (depending on whether or not dark mode is on) and adds the search bar to the screen
     private func refreshScreen() {
         if (independentToggle) {
             independentToggleIndicator.isHidden = false
@@ -498,7 +536,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         actionSheet.messageTextColor = darkModeToggle ? .white : .black
     }
     
-    /// Sets up the functionality and location of the FABs
+    /// Sets up the functionality, color, and location of the floating action buttons
     private func refreshButtons() {
         darkModeButton.frame = CGRect(x: self.view.frame.size.width - darkIconXOffset, y: self.view.frame.size.height - darkIconYOffset, width: darkIconDim, height: darkIconDim)
         darkModeButton.setImage(UIImage(systemName: darkModeToggle ? "sun.min.fill" : "moon.stars.fill"), for: .normal)
@@ -560,6 +598,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         }
         let mapID = GMSMapID(identifier: mapTheme)
         camera = GMSCameraPosition.camera(withLatitude: currentLat, longitude: currentLong, zoom: zoom)
+        
+        /// This piece of code ensures the map is only reset if needed, as each map reset takes a few seconds and looks bad
         if (newLoc) {
             if (mapView == nil) {
                 mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
@@ -567,16 +607,22 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
                 mapView.animate(to: camera)
             }
         }
+        
+        /// Also needs to reset the map if the dark mode toggle is changed, due to a new mapID
         if (darkModeSwitch) {
             mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
         }
+        
         iconVisibility(visible: zoom <= 18 ? false : true, list: nearbyLocationMarkers)
         iconVisibility(visible: zoom < 14 ? false : true, list: radiusMarkers)
         mapView.delegate = self
         mapView.settings.setAllGesturesEnabled(!locked)
         scene.addSubview(mapView)
+        
+        /// Sets the heapmap to appear on the map, but unless the heatmap feature is on, it has no data so it looks empty
         heatMapLayer.map = mapView
         heatMapLayer.gradient = GMUGradient(colors: gradientColors, startPoints: gradientStartheatMapPoints, colorMapSize: 256)
+        
         mapView.isTrafficEnabled = trafficToggle
         mapView.isIndoorEnabled = indoorToggle
         marker.position = CLLocationCoordinate2D(latitude: currentLat, longitude: currentLong)
@@ -637,6 +683,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             return
         }
         placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
+            
+            /// The guard statements protect against different errors, from loading errors to segmentation faults
             guard error == nil else {
                 print("Some error occured: \(error?.localizedDescription ?? "")")
                 return
@@ -654,6 +702,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
                 print("The current place is nil or doesn't exist: \(error?.localizedDescription ?? "")")
                 return
             }
+            
+            /// If all guards pass, then we can go to new location and refresh the map
             self.currentLat = Double(place?.coordinate.latitude ?? 0.0)
             self.currentLong = Double(place?.coordinate.longitude ?? 0.0)
             self.currentPlaceID = place?.placeID ?? "None"
@@ -663,14 +713,19 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         refreshButtons()
     }
     
+    /// When the information floating action button is tapped, we want to show the information screen; this function controls what happens when the button is tapped
     @objc private func infoButtonTapped(infoButton: MDCFloatingButton){
         infoButton.collapse(true) {
             infoButton.expand(true, completion: nil)
         }
+        
+        /// Like other features, you should not be able access this feature while in the radius search feature
         if (locked) {
             present(alertController, animated: true, completion: nil)
             return
         }
+        
+        /// popOverVC is a temporary storyboard element that I used to present the PopUpViewController; the popOverVC needs to send over proper values as well
         let popOverVC = storyboard?.instantiateViewController(withIdentifier: "popup_vc") as! PopUpViewController
         popOverVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
         popOverVC.setLocation(loc: currentPlaceID)
@@ -706,8 +761,10 @@ extension GoogleDemoApplicationsMainViewController: GMSAutocompleteResultsViewCo
 
 /// Allows the location icons to be clicked
 extension GoogleDemoApplicationsMainViewController: GMSMapViewDelegate {
-    
+
     @objc(mapView:didTapMarker:) func mapView(_: GMSMapView, didTap marker: GMSMarker) -> Bool {
+        
+        /// ONLY do the following if the marker's position is the same as the latest position; this ensures markers from radius search and nearby recommendations CANNOT be pressed
         if (marker.position.latitude == currentLat && marker.position.longitude == currentLong) {
             if (!imageOn) {
                 imageOn = true
