@@ -111,6 +111,9 @@ PODS:
     - MaterialComponents/Typography
     - MDFInternationalization
     - MDFTextAccessibility
+  - MaterialComponents/OverlayWindow (110.0.0):
+    - MaterialComponents/Availability
+    - MaterialComponents/private/Application
   - MaterialComponents/private/Application (110.0.0)
   - MaterialComponents/private/Color (110.0.0):
     - MaterialComponents/Availability
@@ -122,6 +125,7 @@ PODS:
   - MaterialComponents/private/KeyboardWatcher (110.0.0):
     - MaterialComponents/private/Application
   - MaterialComponents/private/Math (110.0.0)
+  - MaterialComponents/private/Overlay (110.0.0)
   - MaterialComponents/private/UIMetrics (110.0.0):
     - MaterialComponents/private/Application
   - MaterialComponents/Ripple (110.0.0):
@@ -139,6 +143,19 @@ PODS:
     - MaterialComponents/private/Color
     - MaterialComponents/private/Math
     - MaterialComponents/ShadowLayer
+  - MaterialComponents/Snackbar (110.0.0):
+    - MaterialComponents/AnimationTiming
+    - MaterialComponents/Availability
+    - MaterialComponents/Buttons
+    - MaterialComponents/Elevation
+    - MaterialComponents/OverlayWindow
+    - MaterialComponents/private/Application
+    - MaterialComponents/private/KeyboardWatcher
+    - MaterialComponents/private/Math
+    - MaterialComponents/private/Overlay
+    - MaterialComponents/ShadowElevations
+    - MaterialComponents/ShadowLayer
+    - MaterialComponents/Typography
   - MaterialComponents/Typography (110.0.0):
     - MaterialComponents/private/Application
     - MaterialComponents/private/Math
@@ -155,6 +172,7 @@ DEPENDENCIES:
   - MaterialComponents/Banner
   - MaterialComponents/Buttons
   - MaterialComponents/Cards
+  - MaterialComponents/Snackbar
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
@@ -173,6 +191,6 @@ SPEC CHECKSUMS:
   MDFInternationalization: 010097556d6b09d2c4ea38e0820ea6d37be6a314
   MDFTextAccessibility: 85c09a1bd9c321f494348e632a25063bcda35a53
 
-PODFILE CHECKSUM: 0611bfb6f4d06f16241d67eedaec6086fa1b0e77
+PODFILE CHECKSUM: 503c284c4156f5d943727fe5e765d8b45d444e6f
 
 COCOAPODS: 1.9.3

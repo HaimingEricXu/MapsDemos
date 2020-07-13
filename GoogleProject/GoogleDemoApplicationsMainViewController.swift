@@ -21,6 +21,7 @@ import MaterialComponents.MaterialButtons
 import MaterialComponents.MaterialActionSheet
 import MaterialComponents.MaterialBanner
 import MaterialComponents.MaterialCards
+import MaterialComponents.MaterialSnackbar
 
 class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationManagerDelegate, GMUClusterManagerDelegate {
         
@@ -117,8 +118,6 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     private var clearYOffset: CGFloat = 868
     private var clearWidth: CGFloat = 100
     private var clearHeight: CGFloat = 50
-    private let radSlider = UISlider(frame:CGRect(x: 0, y: 0, width: 300, height: 20))
-    let alertController = UIAlertController(title: "Alert", message: "Please exit radius search by clicking it in the action menu.", preferredStyle: .alert)
     
     /// The map theme (dark mode or light mode); initially set to light mode
     private var mapTheme = MapThemes.lightThemeId
@@ -135,22 +134,13 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     private let zoomOutButton = MDCFloatingButton()
     private let currentLocButton = MDCFloatingButton()
     private let infoButton = MDCFloatingButton()
+    private let warningMessage = MDCSnackbarMessage()
 
     /// Sets up the initial screen and adds options to the action sheet
     override func viewDidLoad() {
         super.viewDidLoad()
         requestAuthorization()
         zoom = initialZoom
-        radSlider.center = view.center
-        view.addSubview(radSlider)
-        view.bringSubviewToFront(radSlider)
-        radSlider.isHidden = true
-        radSlider.isContinuous = false
-        radSlider.addTarget(self, action: #selector(radSliderChanged(_:)), for: .valueChanged)
-        radSlider.maximumValue = 2000
-        radSlider.minimumValue = 500
-        radSlider.setValue(2000, animated: true)
-        alertController.addAction(UIAlertAction(title: "Ok", style: .cancel, handler: nil))
         refreshMap(newLoc: true)
         refreshButtons()
         refreshScreen()
@@ -158,7 +148,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         executeHeatMap()
         let independence = MDCActionSheetAction(title: "Toggle Independent Features", image: nil, handler: { Void in
             if (self.locked) {
-                self.present(self.alertController, animated: true, completion: nil)
+                self.warningMessage.text = "Please turn off the radius search feature first."
+                MDCSnackbarManager.show(self.warningMessage)
                 return
             }
             self.independentToggle = !self.independentToggle
@@ -171,7 +162,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         })
         let traffic = MDCActionSheetAction(title: "Toggle Traffic Overlay", image: nil, handler: { Void in
             if (self.locked) {
-                self.present(self.alertController, animated: true, completion: nil)
+                self.warningMessage.text = "Please turn off the radius search feature first."
+                MDCSnackbarManager.show(self.warningMessage)
                 return
             }
             let darkModeTemp = self.darkModeToggle
@@ -186,7 +178,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         })
         let indoor = MDCActionSheetAction(title: "Toggle Indoor Map", image: nil, handler: { Void in
             if (self.locked) {
-                self.present(self.alertController, animated: true, completion: nil)
+                self.warningMessage.text = "Please turn off the radius search feature first."
+                MDCSnackbarManager.show(self.warningMessage)
                 return
             }
             let darkModeTemp = self.darkModeToggle
@@ -207,7 +200,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         })
         let nearbyRecs = MDCActionSheetAction(title: "Nearby Recommendations", image: nil, handler: { Void in
             if (self.locked) {
-                self.present(self.alertController, animated: true, completion: nil)
+                self.warningMessage.text = "Please turn off the radius search feature first."
+                MDCSnackbarManager.show(self.warningMessage)
                 return
             }
             self.showNearby()
@@ -216,14 +210,16 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         })
         let panoramicView = MDCActionSheetAction(title: "Panoramic View", image: nil, handler: { Void in
             if (self.locked) {
-                self.present(self.alertController, animated: true, completion: nil)
+                self.warningMessage.text = "Please turn off the radius search feature first."
+                MDCSnackbarManager.show(self.warningMessage)
                 return
             }
             self.openPanorama()
         })
         let heatMap = MDCActionSheetAction(title: "Toggle Heat Map", image: nil, handler: { Void in
             if (self.locked) {
-                self.present(self.alertController, animated: true, completion: nil)
+                self.warningMessage.text = "Please turn off the radius search feature first."
+                MDCSnackbarManager.show(self.warningMessage)
                 return
             }
             if (self.independentToggle) {
@@ -243,12 +239,13 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         })
         let radiusSearch = MDCActionSheetAction(title: "Radius Search", image: nil, handler: { Void in
             self.locked = !self.locked
-            self.radSlider.isHidden = !self.locked
             if (self.locked) {
+                let zoomCamera = GMSCameraUpdate.zoom(by: 14 - self.zoom)
+                self.zoom = 14
+                self.mapView.moveCamera(zoomCamera)
                 self.radius()
             } else {
                 let zoomCamera = GMSCameraUpdate.zoom(by: 14 - self.zoom)
-                self.radSlider.value = 2000
                 self.zoom = 14
                 self.mapView.moveCamera(zoomCamera)
                 for marker in self.radiusMarkers {
@@ -301,20 +298,15 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         }
     }
     
-    @objc func radSliderChanged(_ sender: UISlider!) {
-        radius(rad: Double(radSlider.value))
-    }
-    
     /// Adjust the size of the circle; add or remove points depending on the subset, but no need to always refresh
     private func radius(rad: Double = 2000) {
         for marker in radiusMarkers {
             marker.map = nil
         }
-        let radiusFactor: Double = 150000 /// After trial and error, this value was perfect to ensure all points remained in the radius
-        let zoomFactor: Double = 1000 /// After trial and error, this value was best for adjusting zoom based on radius
-        let zoomCamera = GMSCameraUpdate.zoom(by: Float(14 + (Double(radSlider.maximumValue) - rad) / zoomFactor) - zoom)
-        zoom = Float(14 + (Double(radSlider.maximumValue) - rad) / zoomFactor)
-        mapView.moveCamera(zoomCamera)
+        
+        /// After trial and error, this value was perfect to ensure all points remained in the radius
+        let radiusFactor: Double = 150000
+
         radiusMarkers.removeAll()
         overlayController.clear()
         overlayController.drawCircle(mapView: mapView, darkModeToggle: darkModeToggle, lat: currentLat, long: currentLong, rad: rad)
@@ -340,7 +332,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     
     @objc func darkModeActivate(sender: UIButton!) {
         if (locked) {
-            present(alertController, animated: true, completion: nil)
+            self.warningMessage.text = "Please turn off the radius search feature first."
+            MDCSnackbarManager.show(self.warningMessage)
             return
         }
         let tempToggle: Bool = !darkModeToggle
@@ -356,7 +349,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     /// Clears all icon images and overlays
     @objc func clearAll(sender: UIButton!) {
         if (locked) {
-            present(alertController, animated: true, completion: nil)
+            self.warningMessage.text = "Please turn off the radius search feature first."
+            MDCSnackbarManager.show(self.warningMessage)
             return
         }
         for marker in nearbyLocationMarkers {
@@ -572,7 +566,6 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
         }
         iconVisibility(visible: zoom <= 18 ? false : true, list: nearbyLocationMarkers)
-        //iconVisibility(visible: zoom < 14 ? false : true, list: radiusMarkers)
         mapView.delegate = self
         mapView.settings.setAllGesturesEnabled(!locked)
         scene.addSubview(mapView)
@@ -593,17 +586,22 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         }
         present(actionSheet, animated: true, completion: nil)
     }
-    
+        
     /// Zoom in, changes zoom variable
     @objc private func zoomInButtonTapped(zoomInButton: MDCFloatingButton){
         zoomInButton.collapse(true) {
             zoomInButton.expand(true, completion: nil)
         }
         if (locked) {
-            present(alertController, animated: true, completion: nil)
-            return
+            let tempZoom = mapView.camera.zoom + 0.5
+            if (Double(2000 - (tempZoom - 14) * 800) <= 0) {
+                warningMessage.text = "You cannot zoom in more; turn off the radius search feature via the action menu."
+                MDCSnackbarManager.show(warningMessage)
+                return
+            }
+            radius(rad: Double(2000 - (tempZoom - 14) * 800))
         }
-        let zoomCamera = GMSCameraUpdate.zoom(by: 2.0)
+        let zoomCamera = GMSCameraUpdate.zoom(by: locked ? 0.5 : 2.0)
         mapView.moveCamera(zoomCamera)
         zoom = min(mapView.camera.zoom, maximumZoom)
         refreshButtons()
@@ -617,10 +615,15 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             zoomOutButton.expand(true, completion: nil)
         }
         if (locked) {
-            present(alertController, animated: true, completion: nil)
-            return
+            let tempZoom = mapView.camera.zoom - 0.5
+            if (tempZoom < 14) {
+                warningMessage.text = "You cannot zoom out more; turn off radius search feature via the action menu."
+                MDCSnackbarManager.show(warningMessage)
+                return
+            }
+            radius(rad: Double(2000 - (tempZoom - 14) * 800))
         }
-        let zoomCamera = GMSCameraUpdate.zoom(by: -2.0)
+        let zoomCamera = GMSCameraUpdate.zoom(by: locked ? -0.5 : -2.0)
         mapView.moveCamera(zoomCamera)
         zoom = max(mapView.camera.zoom, 0)
         refreshButtons()
@@ -634,7 +637,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             currentLocButton.expand(true, completion: nil)
         }
         if (locked) {
-            present(alertController, animated: true, completion: nil)
+            self.warningMessage.text = "Please turn off the radius search feature first."
+            MDCSnackbarManager.show(self.warningMessage)
             return
         }
         placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
@@ -669,7 +673,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             infoButton.expand(true, completion: nil)
         }
         if (locked) {
-            present(alertController, animated: true, completion: nil)
+            warningMessage.text = "Please turn off the radius search feature first."
+            MDCSnackbarManager.show(warningMessage)
             return
         }
         let popOverVC = storyboard?.instantiateViewController(withIdentifier: "popup_vc") as! PopUpViewController
