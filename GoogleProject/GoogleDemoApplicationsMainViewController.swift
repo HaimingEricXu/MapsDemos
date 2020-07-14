@@ -24,7 +24,7 @@ import MaterialComponents.MaterialCards
 import MaterialComponents.MaterialSnackbar
 
 class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationManagerDelegate, GMUClusterManagerDelegate {
-    
+        
     /// The initial zoom value; any change here is universal, so no need to look for zoom values when the app is booted
     private let initialZoom: Float = 10.0
     
@@ -119,8 +119,6 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     private var clearYOffset: CGFloat = 868
     private var clearWidth: CGFloat = 100
     private var clearHeight: CGFloat = 50
-    private let radSlider = UISlider(frame:CGRect(x: 0, y: 0, width: 300, height: 20))
-    let alertController = UIAlertController(title: "Alert", message: "Please exit radius search by clicking it in the action menu.", preferredStyle: .alert)
     
     /// The map theme (dark mode or light mode); initially set to light mode
     private var mapTheme = MapThemes.lightThemeId
@@ -143,21 +141,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     override func viewDidLoad() {
         super.viewDidLoad()
         requestAuthorization()
-        
-        /// The following lines set up the zoom and zoom bar for the radius search feature.
         zoom = initialZoom
-        radSlider.center = view.center
-        view.addSubview(radSlider)
-        view.bringSubviewToFront(radSlider)
-        radSlider.isHidden = true
-        radSlider.isContinuous = false
-        radSlider.addTarget(self, action: #selector(radSliderChanged(_:)), for: .valueChanged)
-        radSlider.maximumValue = 2000
-        radSlider.minimumValue = 500
-        radSlider.setValue(2000, animated: true)
-        
-        /// This sets up the alert controller which pops up when the user attempts to click on another feature while in the radius search feature
-        alertController.addAction(UIAlertAction(title: "Ok", style: .cancel, handler: nil))
         
         /// Sets up the map, buttons, and screen
         refreshMap(newLoc: true)
@@ -171,7 +155,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         /// Next few lines add the buttons to the action menu
         let independence = MDCActionSheetAction(title: "Toggle Independent Features", image: nil, handler: { Void in
             if (self.locked) {
-                self.present(self.alertController, animated: true, completion: nil)
+                self.warningMessage.text = "Please turn off the radius search feature first."
+                MDCSnackbarManager.show(self.warningMessage)
                 return
             }
             self.independentToggle = !self.independentToggle
@@ -184,7 +169,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         })
         let traffic = MDCActionSheetAction(title: "Toggle Traffic Overlay", image: nil, handler: { Void in
             if (self.locked) {
-                self.present(self.alertController, animated: true, completion: nil)
+                self.warningMessage.text = "Please turn off the radius search feature first."
+                MDCSnackbarManager.show(self.warningMessage)
                 return
             }
             let darkModeTemp = self.darkModeToggle
@@ -199,7 +185,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         })
         let indoor = MDCActionSheetAction(title: "Toggle Indoor Map", image: nil, handler: { Void in
             if (self.locked) {
-                self.present(self.alertController, animated: true, completion: nil)
+                self.warningMessage.text = "Please turn off the radius search feature first."
+                MDCSnackbarManager.show(self.warningMessage)
                 return
             }
             let darkModeTemp = self.darkModeToggle
@@ -220,7 +207,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         })
         let nearbyRecs = MDCActionSheetAction(title: "Nearby Recommendations", image: nil, handler: { Void in
             if (self.locked) {
-                self.present(self.alertController, animated: true, completion: nil)
+                self.warningMessage.text = "Please turn off the radius search feature first."
+                MDCSnackbarManager.show(self.warningMessage)
                 return
             }
             self.showNearby()
@@ -229,14 +217,16 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         })
         let panoramicView = MDCActionSheetAction(title: "Panoramic View", image: nil, handler: { Void in
             if (self.locked) {
-                self.present(self.alertController, animated: true, completion: nil)
+                self.warningMessage.text = "Please turn off the radius search feature first."
+                MDCSnackbarManager.show(self.warningMessage)
                 return
             }
             self.openPanorama()
         })
         let heatMap = MDCActionSheetAction(title: "Toggle Heat Map", image: nil, handler: { Void in
             if (self.locked) {
-                self.present(self.alertController, animated: true, completion: nil)
+                self.warningMessage.text = "Please turn off the radius search feature first."
+                MDCSnackbarManager.show(self.warningMessage)
                 return
             }
             if (self.independentToggle) {
@@ -303,7 +293,6 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
                 let json = try JSONSerialization.jsonObject(with: data, options: [])
                 if let object = json as? [[String: Any]] {
                     for item in object {
-                        
                         /// Given the way the code parses through the json file, the lat and long can be retrieved via item like a dictionary
                         let lat = item["lat"]
                         let lng = item["lng"]
@@ -321,49 +310,43 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         }
     }
     
-    /// Triggers when the radius slider is touched (radius search feature); calls the radius function with a new radius so new locations can appear
-    @objc func radSliderChanged(_ sender: UISlider!) {
-        radius(rad: Double(radSlider.value))
-    }
-    
     /// Adjust the size of the circle; add or remove points depending on the subset, but no need to always refresh
     private func radius(rad: Double = 2000) {
-       for marker in radiusMarkers {
-           marker.map = nil
-       }
-       
-       /// After trial and error, this value was perfect to ensure all points remained in the radius
-       let radiusFactor: Double = 150000
+        for marker in radiusMarkers {
+            marker.map = nil
+        }
+        
+        /// After trial and error, this value was perfect to ensure all points remained in the radius
+        let radiusFactor: Double = 150000
 
-       radiusMarkers.removeAll()
-       overlayController.clear()
-       overlayController.drawCircle(mapView: mapView, darkModeToggle: darkModeToggle, lat: currentLat, long: currentLong, rad: rad)
-       for _ in 0...5 {
-           let tempLat = Float(currentLat) + Float.random(in: -Float((rad / radiusFactor))..<Float((rad / radiusFactor)))
-           let tempLong = Float(currentLong) + Float.random(in: -Float((rad / radiusFactor))..<Float((rad / radiusFactor)))
-           overlayController.geocode(latitude: Double(tempLat), longitude: Double(tempLong)) { (placemark, error, pid) in
-               DispatchQueue.main.async {
-                   let tempMarker: GMSMarker = GMSMarker()
-                   if (pid.count >= 4) {
-                       let start = pid.index(pid.startIndex, offsetBy: 4)
-                       let range = start..<pid.endIndex
-                       let officialPid = pid[range]
-                       tempMarker.position = CLLocationCoordinate2D(latitude: Double(tempLat), longitude: Double(tempLong))
-                       self.locationImageController.viewImage(placeId: String(officialPid), localMarker: tempMarker, imageView: UIImageView())
-                       tempMarker.map = self.mapView
-                       self.radiusMarkers.append(tempMarker)
-                   }
-               }
-           }
-       }
+        radiusMarkers.removeAll()
+        overlayController.clear()
+        overlayController.drawCircle(mapView: mapView, darkModeToggle: darkModeToggle, lat: currentLat, long: currentLong, rad: rad)
+        for _ in 0...5 {
+            let tempLat = Float(currentLat) + Float.random(in: -Float((rad / radiusFactor))..<Float((rad / radiusFactor)))
+            let tempLong = Float(currentLong) + Float.random(in: -Float((rad / radiusFactor))..<Float((rad / radiusFactor)))
+            overlayController.geocode(latitude: Double(tempLat), longitude: Double(tempLong)) { (placemark, error, pid) in
+                DispatchQueue.main.async {
+                    let tempMarker: GMSMarker = GMSMarker()
+                    if (pid.count >= 4) {
+                        let start = pid.index(pid.startIndex, offsetBy: 4)
+                        let range = start..<pid.endIndex
+                        let officialPid = pid[range]
+                        tempMarker.position = CLLocationCoordinate2D(latitude: Double(tempLat), longitude: Double(tempLong))
+                        self.locationImageController.viewImage(placeId: String(officialPid), localMarker: tempMarker, imageView: UIImageView())
+                        tempMarker.map = self.mapView
+                        self.radiusMarkers.append(tempMarker)
+                    }
+                }
+            }
+        }
     }
     
     /// Activates system-wide dark mode (cloud based)
     @objc func darkModeActivate(sender: UIButton!) {
-        
-        /// Not allowed to do so when in radius search mode (for consistency)
         if (locked) {
-            present(alertController, animated: true, completion: nil)
+            self.warningMessage.text = "Please turn off the radius search feature first."
+            MDCSnackbarManager.show(self.warningMessage)
             return
         }
         let tempToggle: Bool = !darkModeToggle
@@ -379,7 +362,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     /// Clears all icon images and overlays
     @objc func clearAll(sender: UIButton!) {
         if (locked) {
-            present(alertController, animated: true, completion: nil)
+            self.warningMessage.text = "Please turn off the radius search feature first."
+            MDCSnackbarManager.show(self.warningMessage)
             return
         }
         for marker in nearbyLocationMarkers {
@@ -405,7 +389,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         heatMapLayer.map = nil
     }
         
-    /// Function to display nearby heatMapPoints of interest
+    /// Function to display nearby points of interest
     private func showNearby() {
         currentClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
             guard error == nil else {
@@ -428,7 +412,6 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
                     self.nearbyLocationMarkers.append(temp)
                     self.nearbyLocationIDs.add(loc.place.placeID!)
                 }
-                
                 /// Adds the marker to the cluster manager and finds images for the markers
                 for locationMarker in self.nearbyLocationMarkers {
                     self.locationImageController.viewImage(placeId: self.nearbyLocationIDs[counter] as! String, localMarker: locationMarker, imageView: UIImageView(), tapped: false)
@@ -474,7 +457,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         present(vc, animated: true)
     }
     
-    //// Changes the colors of the buttons, search bar, action sheet, and search results view controller (depending on whether or not dark mode is on) and adds the search bar to the screen
+    /// Changes the colors of the buttons, search bar, action sheet, and search results view controller (depending on whether or not dark mode is on) and adds the search bar to the screen
     private func refreshScreen() {
         if (independentToggle) {
             independentToggleIndicator.isHidden = false
@@ -522,7 +505,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         actionSheet.messageTextColor = darkModeToggle ? .white : .black
     }
     
-    /// Sets up the functionality, color, and location of the floating action buttons
+    /// Sets up the functionality and location of the FABs
     private func refreshButtons() {
         darkModeButton.frame = CGRect(x: self.view.frame.size.width - darkIconXOffset, y: self.view.frame.size.height - darkIconYOffset, width: darkIconDim, height: darkIconDim)
         darkModeButton.setImage(UIImage(systemName: darkModeToggle ? "sun.min.fill" : "moon.stars.fill"), for: .normal)
@@ -624,7 +607,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         }
         present(actionSheet, animated: true, completion: nil)
     }
-    
+        
     /// Zoom in, changes zoom variable
     @objc private func zoomInButtonTapped(zoomInButton: MDCFloatingButton){
         zoomInButton.collapse(true) {
@@ -675,12 +658,11 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             currentLocButton.expand(true, completion: nil)
         }
         if (locked) {
-            present(alertController, animated: true, completion: nil)
+            self.warningMessage.text = "Please turn off the radius search feature first."
+            MDCSnackbarManager.show(self.warningMessage)
             return
         }
         placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
-            
-            /// The guard statements protect against different errors, from loading errors to segmentation faults
             guard error == nil else {
                 print("Some error occured: \(error?.localizedDescription ?? "")")
                 return
@@ -698,8 +680,6 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
                 print("The current place is nil or doesn't exist: \(error?.localizedDescription ?? "")")
                 return
             }
-            
-            /// If all guards pass, then we can go to new location and refresh the map
             self.currentLat = Double(place?.coordinate.latitude ?? 0.0)
             self.currentLong = Double(place?.coordinate.longitude ?? 0.0)
             self.currentPlaceID = place?.placeID ?? "None"
@@ -717,7 +697,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         
         /// Like other features, you should not be able access this feature while in the radius search feature
         if (locked) {
-            present(alertController, animated: true, completion: nil)
+            warningMessage.text = "Please turn off the radius search feature first."
+            MDCSnackbarManager.show(warningMessage)
             return
         }
         
@@ -757,10 +738,8 @@ extension GoogleDemoApplicationsMainViewController: GMSAutocompleteResultsViewCo
 
 /// Allows the location icons to be clicked
 extension GoogleDemoApplicationsMainViewController: GMSMapViewDelegate {
-
+    
     @objc(mapView:didTapMarker:) func mapView(_: GMSMapView, didTap marker: GMSMarker) -> Bool {
-        
-        /// ONLY do the following if the marker's position is the same as the latest position; this ensures markers from radius search and nearby recommendations CANNOT be pressed
         if (marker.position.latitude == currentLat && marker.position.longitude == currentLong) {
             if (!imageOn) {
                 imageOn = true
