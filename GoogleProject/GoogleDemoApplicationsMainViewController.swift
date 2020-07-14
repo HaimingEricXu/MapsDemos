@@ -378,7 +378,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     
     /// ADD comments about how the code and features work
     
-    /// Function to display nearby heatMapPoints of interest
+    /// Function to display nearby points of interest
     private func showNearby() {
         currentClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
             guard error == nil else {
