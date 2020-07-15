@@ -650,8 +650,20 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         if (locked) {
             let tempZoom = mapView.camera.zoom - 0.5
             if (tempZoom < 14) {
-                warningMessage.text = "You cannot zoom out more; turn off radius search feature via the action menu."
+                warningMessage.text = "You have zoomed out too much; radius search is now off."
                 MDCSnackbarManager.show(warningMessage)
+                locked = false
+                let zoomCamera = GMSCameraUpdate.zoom(by: -2.0)
+                mapView.moveCamera(zoomCamera)
+                zoom = max(mapView.camera.zoom, 0)
+                for marker in self.radiusMarkers {
+                    marker.map = nil
+                }
+                radiusMarkers.removeAll()
+                overlayController.clear()
+                self.refreshButtons()
+                self.refreshMap(newLoc: true)
+                self.refreshScreen()
                 return
             }
             radius(rad: Double(2000 - (tempZoom - 14) * 800))
