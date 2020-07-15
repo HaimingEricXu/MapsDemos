@@ -20,11 +20,10 @@ import GoogleMaps
 class PopUpViewController: UIViewController {
 
     private let imageController = LocationImageGenerator()
-    private var location: String = ""
+    private var pid: String = ""
     private var infoCard = MDCCard()
     private var dim: CGFloat = 300
-    private var locationLat: Double!
-    private var locationLong: Double!
+    private var coord = CLLocationCoordinate2D()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,10 +38,10 @@ class PopUpViewController: UIViewController {
         infoCard = MDCCard(frame: CGRect(x: xOffset, y: yOffset, width: dim, height: dim))
         let imageView = UIImageView()
         imageView.frame = CGRect(x: xOffset, y: yOffset, width: dim, height: dim * 2 / 3)
-        imageController.viewImage(placeId: location, localMarker: GMSMarker(), imageView: imageView, select: true)
+        imageController.viewImage(placeId: pid, localMarker: GMSMarker(), imageView: imageView, select: true)
         
         let infoText =  UITextView(frame: CGRect(x: xOffset, y: yOffset + imageView.frame.height, width: dim, height: dim / 6))
-        infoText.text = "The current coordinates are (" + String(locationLat) + ", " + String(locationLong) + ")."
+        infoText.text = "The current coordinates are (" + String(coord.latitude) + ", " + String(coord.longitude) + ")."
         infoText.font = UIFont.systemFont(ofSize: 10)
         infoText.centerVertically()
         
@@ -72,16 +71,9 @@ class PopUpViewController: UIViewController {
         });
     }
     
-    func setLocation(loc: String) {
-        location = loc
-    }
-    
-    func setLat(lat: Double) {
-        locationLat = lat
-    }
-    
-    func setLong(long: Double) {
-        locationLong = long
+    func update(newCoord: CLLocationCoordinate2D, newPid: String) {
+        coord = newCoord
+        pid = newPid
     }
     
     @objc private func removeAnimate() {

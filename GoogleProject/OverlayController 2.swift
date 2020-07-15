@@ -1,17 +1,10 @@
-/* Copyright (c) 2020 Google Inc.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+//
+//  OverlayController.swift
+//  GoogleProject
+//
+//  Created by Haiming Xu on 6/23/20.
+//  Copyright © 2020 Haiming Xu. All rights reserved.
+//
 
 import UIKit
 import GooglePlaces
@@ -23,6 +16,9 @@ class OverlayController {
     private var lat: Double = 0.0
     private var long: Double = 0.0
 
+    /// Heatmap buffering
+    private lazy var activityView = UIActivityIndicatorView(style: .whiteLarge)
+    
     func clear() {
         for x in overlays {
             x.map = nil
@@ -93,10 +89,23 @@ class OverlayController {
         }
     }
     
-    func drawCircle(mapView: GMSMapView, darkModeToggle: Bool, coord: CLLocationCoordinate2D, rad: Double = 2000) {
+    func showActivityIndicatory(view: UIView, darkMode: Bool) {
+        activityView.center = view.center
+        activityView.style = UIActivityIndicatorView.Style.large
+        activityView.color = darkMode ? .white : .black
+        view.addSubview(activityView)
+        view.bringSubviewToFront(activityView)
+        activityView.startAnimating()
+    }
+    
+    func hideActivityIndicatory() {
+        activityView.removeFromSuperview()
+    }
+    
+    func drawCircle(mapView: GMSMapView, darkModeToggle: Bool, lat: Double, long: Double, rad: Double = 2000) {
         let circle = GMSCircle()
         circle.map = nil
-        circle.position = coord
+        circle.position = CLLocationCoordinate2D(latitude: lat, longitude: long)
         circle.radius = rad
         circle.fillColor = .clear
         circle.strokeColor = darkModeToggle ? .white : .black
