@@ -1,10 +1,17 @@
-//
-//  OverlayController.swift
-//  GoogleProject
-//
-//  Created by Haiming Xu on 6/23/20.
-//  Copyright © 2020 Haiming Xu. All rights reserved.
-//
+/* Copyright (c) 2020 Google Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 import UIKit
 import GooglePlaces
@@ -15,7 +22,7 @@ class OverlayController {
     private var overlays = [GMSCircle]()
     private var lat: Double = 0.0
     private var long: Double = 0.0
-    
+
     func clear() {
         for x in overlays {
             x.map = nil
@@ -23,8 +30,7 @@ class OverlayController {
     }
     
     func fetchData(completion: @escaping ([String : Any]?, Error?) -> Void) {
-        #error("Register for API keys and enter them below; then, delete this line")
-        let apiKey: String = ""
+        let apiKey: String = "AIzaSyC3a6xaPcOk9S1gFxf9iGrNSfLHOWxOxN8"
         let url = URL(string: "https://maps.googleapis.com/maps/api/geocode/json?&latlng=\(lat),\(long)&key=" + apiKey)!
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             guard let data = data else { return }
@@ -87,10 +93,10 @@ class OverlayController {
         }
     }
     
-    func drawCircle(mapView: GMSMapView, darkModeToggle: Bool, lat: Double, long: Double, rad: Double = 2000) {
+    func drawCircle(mapView: GMSMapView, darkModeToggle: Bool, coord: CLLocationCoordinate2D, rad: Double = 2000) {
         let circle = GMSCircle()
         circle.map = nil
-        circle.position = CLLocationCoordinate2D(latitude: lat, longitude: long)
+        circle.position = coord
         circle.radius = rad
         circle.fillColor = .clear
         circle.strokeColor = darkModeToggle ? .white : .black

@@ -34,8 +34,8 @@ class StreetViewController: UIViewController {
         self.view.bringSubviewToFront(backButton)
     }
     
-    func setValues(newLat: Double, newLong: Double) {
-        coord = CLLocationCoordinate2D(latitude: newLat, longitude: newLong)
+    func setValues(newCoord: CLLocationCoordinate2D) {
+        coord = newCoord
     }
     
     @IBAction private func menu(_ sender: Any) {
