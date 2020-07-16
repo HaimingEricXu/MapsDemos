@@ -238,6 +238,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             self.openPanorama()
         })
         let heatMap = MDCActionSheetAction(title: "Toggle Heat Map", image: nil, handler: { Void in
+            let heatMapTemp = self.heatMapToggle
             if (self.locked) {
                 self.warningMessage.text = "Please turn off the radius search feature first."
                 MDCSnackbarManager.show(self.warningMessage)
@@ -246,7 +247,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             if (self.independentToggle) {
                 self.toggleOff()
             }
-            self.heatMapToggle = !self.heatMapToggle
+            self.heatMapToggle = !heatMapTemp
+            print(self.heatMapToggle)
             if (self.heatMapToggle) {
                 self.heatMapLayer.weightedData = self.heatMapPoints
                 self.heatMapLayer.map = self.mapView
@@ -283,13 +285,20 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         for a in actions {
             actionSheet.addAction(a as! MDCActionSheetAction)
         }
-        
-        /// These lines setup the cluster manager for the nearby recommendations feature
+        setUpCluster()
+    }
+    
+    /// These lines setup the cluster manager for the nearby recommendations feature
+    private func setUpCluster() {
         let iconGenerator = GMUDefaultClusterIconGenerator()
         let algorithm = GMUNonHierarchicalDistanceBasedAlgorithm()
         let renderer = GMUDefaultClusterRenderer(mapView: mapView, clusterIconGenerator: iconGenerator)
         clusterManager = GMUClusterManager(map: mapView, algorithm: algorithm, renderer: renderer)
         clusterManager.setDelegate(self, mapDelegate: self)
+        clusterManager.clearItems()
+        for marker in nearbyLocationMarkers {
+            clusterManager.add(POIItem(position: CLLocationCoordinate2DMake(marker.position.latitude, marker.position.longitude), name: "New Item"))
+        }
     }
     
     /// Zooms in when the cluster icons are clicked
@@ -405,6 +414,15 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         
     /// Function to display nearby points of interest
     private func showNearby() {
+        for marker in nearbyLocationMarkers {
+            marker.map = nil
+        }
+        for marker in radiusMarkers {
+            marker.map = nil
+        }
+        nearbyLocationMarkers.removeAll()
+        nearbyLocationIDs.removeAllObjects()
+        clusterManager.clearItems()
         placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
             guard error == nil else {
                 print("Current place error: \(error?.localizedDescription ?? "")")
@@ -595,7 +613,6 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         }
         
         iconVisibility(visible: zoom <= 18 ? false : true, list: nearbyLocationMarkers)
-        iconVisibility(visible: zoom < 14 ? false : true, list: radiusMarkers)
         mapView.delegate = self
         mapView.settings.setAllGesturesEnabled(!locked)
         scene.addSubview(mapView)
@@ -607,9 +624,12 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         mapView.isTrafficEnabled = trafficToggle
         mapView.isIndoorEnabled = indoorToggle
         marker.position = mapsIdentifier.getCoord()
+        mapView.isBuildingsEnabled = true
+        mapView.isMyLocationEnabled = true
         marker.map = mapView
         resultsViewController?.dismiss(animated: true, completion: nil)
         searchController?.title = ""
+        setUpCluster()
     }
     
     /// Opens the action menu
@@ -727,7 +747,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         /// popOverVC is a temporary storyboard element that I used to present the PopUpViewController; the popOverVC needs to send over proper values as well
         let popOverVC = storyboard?.instantiateViewController(withIdentifier: "popup_vc") as! PopUpViewController
         popOverVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
-        popOverVC.update(newCoord: mapsIdentifier.getCoord(), newPid: mapsIdentifier.getPID())
+        popOverVC.update(newCoord: mapsIdentifier.getCoord(), newPid: mapsIdentifier.getPID(), dMode: darkModeToggle)
         self.present(popOverVC, animated: true)
     }
     

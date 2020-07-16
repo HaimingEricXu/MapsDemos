@@ -24,6 +24,7 @@ class PopUpViewController: UIViewController {
     private var infoCard = MDCCard()
     private var dim: CGFloat = 300
     private var coord = CLLocationCoordinate2D()
+    private var darkMode: Bool = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -42,6 +43,8 @@ class PopUpViewController: UIViewController {
         
         let infoText =  UITextView(frame: CGRect(x: xOffset, y: yOffset + imageView.frame.height, width: dim, height: dim / 6))
         infoText.text = "The current coordinates are (" + String(coord.latitude) + ", " + String(coord.longitude) + ")."
+        infoText.textColor = darkMode ? .white : .black
+        infoText.backgroundColor = darkMode ? .black : .white
         infoText.font = UIFont.systemFont(ofSize: 10)
         infoText.centerVertically()
         
@@ -71,9 +74,10 @@ class PopUpViewController: UIViewController {
         });
     }
     
-    func update(newCoord: CLLocationCoordinate2D, newPid: String) {
+    func update(newCoord: CLLocationCoordinate2D, newPid: String, dMode: Bool) {
         coord = newCoord
         pid = newPid
+        darkMode = dMode
     }
     
     @objc private func removeAnimate() {

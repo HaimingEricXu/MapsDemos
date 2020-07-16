@@ -30,8 +30,7 @@ class OverlayController {
     }
     
     func fetchData(completion: @escaping ([String : Any]?, Error?) -> Void) {
-        #error("Register for API keys and enter them below; then, delete this line")
-        let apiKey: String = "API KEY HERE"
+        let apiKey: String = "AIzaSyC3a6xaPcOk9S1gFxf9iGrNSfLHOWxOxN8"
         let url = URL(string: "https://maps.googleapis.com/maps/api/geocode/json?&latlng=\(lat),\(long)&key=" + apiKey)!
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             guard let data = data else { return }
