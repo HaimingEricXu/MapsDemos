@@ -473,9 +473,9 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     private func refreshScreen() {
         if (independentToggle) {
             independentToggleIndicator.isHidden = false
-            independentToggleIndicator.frame = CGRect(x: self.view.frame.size.width - indicatorXOffset, y: self.view.frame.size.height - indicatorYOffset, width: indicatorDim, height: indicatorDim)
+            independentToggleIndicator.frame = CGRect(x: self.view.frame.size.width - indicatorXOffset, y: view.frame.size.height - indicatorYOffset, width: indicatorDim, height: indicatorDim)
             independentToggleIndicator.tintColor = darkModeToggle ? .white : .red
-            self.view.addSubview(independentToggleIndicator)
+            view.addSubview(independentToggleIndicator)
         } else {
             independentToggleIndicator.isHidden = true
         }
@@ -523,17 +523,18 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         darkModeButton.setImage(UIImage(systemName: darkModeToggle ? "sun.min.fill" : "moon.stars.fill"), for: .normal)
         darkModeButton.tintColor = darkModeToggle ? .yellow : .blue
         darkModeButton.addTarget(self, action: #selector(darkModeActivate), for: .touchUpInside)
-        self.view.addSubview(darkModeButton)
+        darkModeButton.removeFromSuperview()
+        view.addSubview(darkModeButton)
         generalButton.frame = CGRect(x: 0, y: self.view.frame.size.height - 868, width: 100, height: 50)
         generalButton.setTitleColor(darkModeToggle ? .white : .blue, for: .normal)
         generalButton.setTitle( "Clear All", for: .normal)
         generalButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
-        self.view.addSubview(generalButton)
+        view.addSubview(generalButton)
         clearButton.frame = CGRect(x: clearXOffset, y: self.view.frame.size.height - clearYOffset, width: clearWidth, height: clearHeight)
         clearButton.setTitleColor(darkModeToggle ? .white : .blue, for: .normal)
         clearButton.setTitle("Clear All", for: .normal)
         clearButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
-        self.view.addSubview(clearButton)
+        view.addSubview(clearButton)
         let buttons = [optionsButton, zoomOutButton, zoomInButton, currentLocButton, infoButton]
         let iconImages = ["gear", "minus", "plus", "location", "info"]
         optionsButton.addTarget(self, action: #selector(optionsButtonTapped(optionsButton:)), for: .touchUpInside)
