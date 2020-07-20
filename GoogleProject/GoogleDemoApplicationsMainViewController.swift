@@ -49,19 +49,25 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     private let initialZoom: Float = 10.0
     
     /// Indicates if the traffic map can be seen
-    private var trafficToggle: Bool = false
+    private var trafficToggle = false
     
     /// Indicates if indoor maps should be enabled
-    private var indoorToggle: Bool = false
+    private var indoorToggle = false
     
     /// If on, only one toggle may be on at a time; the offsets set the location of the indicator
-    private var independentToggle: Bool = false
+    private var independentToggle = false
     
     /// Indicates if the map should be in dark mode
-    private var darkModeToggle: Bool = false
+    private var darkModeToggle = false
     
     /// Indicates if the heat map should appear
     private var heatMapToggle = false
+            
+    /// Switches between a marker and an image
+    private var imageOn = false
+    
+    /// Locks the screen for radius search
+    private var locked = false
     
     /// Dark mode button and properties; may change depending on the device
     private var darkModeButton = UIButton()
@@ -70,10 +76,10 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     private var darkIconDim: CGFloat = 50
     
     /// The heat map,  its data set, and other color setup
-    private var heatMapLayer: GMUHeatmapTileLayer = GMUHeatmapTileLayer()
+    private let heatMapLayer: GMUHeatmapTileLayer = GMUHeatmapTileLayer()
     private var heatMapPoints = [GMUWeightedLatLng]()
-    private var gradientColors = [UIColor.green, UIColor.red]
-    private var gradientStartheatMapPoints = [NSNumber(0.2), NSNumber(1.0)]
+    private let gradientColors = [UIColor.green, UIColor.red]
+    private let gradientStartheatMapPoints = [NSNumber(0.2), NSNumber(1.0)]
     
     /// Requests access to the user's location
     private let locationManager = CLLocationManager()
@@ -89,12 +95,6 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     
     /// The cluster manager for the nearby recommendations feature; clusters icons to reduce clutter
     private var clusterManager: GMUClusterManager!
-            
-    /// Switches between a marker and an image
-    private var imageOn: Bool = false
-    
-    /// Locks the screen for radius search
-    private var locked: Bool = false
     
     /// Indepedent features indicator and properies; may change depending on the device
     private let independentToggleIndicator = UIImageView(image: UIImage(systemName: "1.magnifyingglass"))
@@ -219,13 +219,13 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             self.refreshButtons()
             self.refreshScreen()
         })
-        let nearbyRecs = MDCActionSheetAction(title: "Nearby Recommendations", image: nil, handler: { Void in
+        let likelihoods = MDCActionSheetAction(title: "View Place Likelihoods", image: nil, handler: { Void in
             if (self.locked) {
                 self.warningMessage.text = "Please turn off the radius search feature first."
                 MDCSnackbarManager.show(self.warningMessage)
                 return
             }
-            self.showNearby()
+            self.findLikelihoods()
             self.refreshButtons()
             self.refreshScreen()
         })
@@ -279,7 +279,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
             self.refreshMap(newLoc: true)
             self.refreshScreen()
         })
-        let actions: NSMutableArray = [independence, traffic, indoor, panoramicView, nearbyRecs, heatMap, radiusSearch]
+        let actions: NSMutableArray = [independence, traffic, indoor, panoramicView, likelihoods, heatMap, radiusSearch]
         for a in actions {
             actionSheet.addAction(a as! MDCActionSheetAction)
         }
@@ -404,7 +404,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
     }
         
     /// Function to display nearby points of interest
-    private func showNearby() {
+    private func findLikelihoods() {
         placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
             guard error == nil else {
                 print("Current place error: \(error?.localizedDescription ?? "")")
@@ -549,17 +549,18 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         * To find the y-coordinate of the next button, decrement the y-coordinate by 0.07 times the height of the view controller. This value was found via trial/error.
         */
         var ycoord: Double = Double(self.view.frame.size.height) * 0.9
-        let xcoord: Double = Double(self.view.frame.size.width) * (indoorToggle && zoom > 16.0 ? 0.1 : 0.85)
+        let xcoord: Double = Double(self.view.frame.size.width) * (indoorToggle && zoom > 16.0 ? -0.8 : 0.8)
         var index: Int = 0
         for button in buttons {
             button.isHidden = false
             button.backgroundColor = darkModeToggle ? .darkGray : .white
             button.setElevation(ShadowElevation(rawValue: 6), for: .normal)
-            button.frame = CGRect(x: Int(xcoord), y: Int(ycoord), width: 48, height: 48)
+            button.removeFromSuperview()
+            view.addSubview(button)
+            button.auto(view: view, xcoord: xcoord, ycoord: ycoord)
             button.setImage(UIImage(systemName: iconImages[index]), for: .normal)
-            ycoord -= 0.07 * Double(self.view.frame.size.height)
+            ycoord -= 0.14 * Double(self.view.frame.size.height)
             index += 1
-            self.view.addSubview(button)
         }
         darkModeButton.isHidden = false
     }
@@ -582,11 +583,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         
         /// This piece of code ensures the map is only reset if needed, as each map reset takes a few seconds and looks bad
         if (newLoc) {
-            if (mapView == nil) {
-                mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
-            } else {
-                mapView.animate(to: camera)
-            }
+            isNewLocation()
         }
         
         /// Also needs to reset the map if the dark mode toggle is changed, due to a new mapID
@@ -610,6 +607,14 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         marker.map = mapView
         resultsViewController?.dismiss(animated: true, completion: nil)
         searchController?.title = ""
+    }
+    
+    private func isNewLocation() {
+        if (mapView == nil) {
+            mapView = GMSMapView(frame: self.view.frame, mapID: GMSMapID(identifier: MapThemes.lightThemeId), camera: camera)
+        } else {
+            mapView.animate(to: camera)
+        }
     }
     
     /// Opens the action menu
