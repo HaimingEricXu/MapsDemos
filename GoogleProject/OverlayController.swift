@@ -29,7 +29,8 @@ class OverlayController {
     ///
     /// - Parameter completion: The completion handler.
     func fetchData(completion: @escaping ([String : Any]?, Error?) -> Void) {
-        let apiKey: String = "AIzaSyC3a6xaPcOk9S1gFxf9iGrNSfLHOWxOxN8"
+        #error("Register for API keys and enter them below; then, delete this line")
+        let apiKey: String = "API KEY HERE"
         let url =  "https://maps.googleapis.com/maps/api/geocode/json?&latlng=\(lat),\(long)&key="
         let search = URL(string: url + apiKey)!
         let task = URLSession.shared.dataTask(with: search) { (data, response, error) in
