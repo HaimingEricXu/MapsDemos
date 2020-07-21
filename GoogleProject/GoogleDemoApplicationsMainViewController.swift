@@ -461,12 +461,8 @@ class GoogleDemoApplicationsMainViewController:
             MDCSnackbarManager.show(self.warningMessage)
             return
         }
-        for marker in nearbyLocationMarkers {
-            marker.map = nil
-        }
-        for marker in radiusMarkers {
-            marker.map = nil
-        }
+        nearbyLocationMarkers.forEach { $0.map = nil }
+        radiusMarkers.forEach { $0.map = nil }
         radiusMarkers.removeAll()
         nearbyLocationMarkers.removeAll()
         nearbyLocationIDs.removeAllObjects()
