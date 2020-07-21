@@ -74,10 +74,10 @@ class PopUpViewController: UIViewController {
         });
     }
     
-    func update(newCoord: CLLocationCoordinate2D, newPid: String, dMode: Bool) {
+    func update(newCoord: CLLocationCoordinate2D, newPid: String, switchDarkMode: Bool) {
         coord = newCoord
         pid = newPid
-        darkMode = dMode
+        darkMode = switchDarkMode
     }
     
     @objc private func removeAnimate() {

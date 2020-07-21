@@ -414,12 +414,8 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         
     /// Function to display nearby points of interest
     private func showNearby() {
-        for marker in nearbyLocationMarkers {
-            marker.map = nil
-        }
-        for marker in radiusMarkers {
-            marker.map = nil
-        }
+        nearbyLocationMarkers.forEach { $0.map = nil }
+        radiusMarkers.forEach { $0.map = nil }
         nearbyLocationMarkers.removeAll()
         nearbyLocationIDs.removeAllObjects()
         clusterManager.clearItems()
@@ -449,7 +445,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
                     self.locationImageController.viewImage(placeId: self.nearbyLocationIDs[counter] as! String, localMarker: locationMarker, imageView: UIImageView(), tapped: false)
                     locationMarker.map = self.mapView
                     counter += 1
-                    self.clusterManager.add(POIItem(position: CLLocationCoordinate2DMake(locationMarker.position.latitude, locationMarker.position.longitude), name: "New Item"))
+                    self.clusterManager.add(POIItem(position: CLLocationCoordinate2DMake(locationMarker.position.latitude, locationMarker.position.longitude), name: String(self.marker.position.latitude) + " " + String(self.marker.position.longitude)))
                 }
                 
                 /// Zooms in the current location
@@ -747,7 +743,7 @@ class GoogleDemoApplicationsMainViewController: UIViewController, CLLocationMana
         /// popOverVC is a temporary storyboard element that I used to present the PopUpViewController; the popOverVC needs to send over proper values as well
         let popOverVC = storyboard?.instantiateViewController(withIdentifier: "popup_vc") as! PopUpViewController
         popOverVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
-        popOverVC.update(newCoord: mapsIdentifier.getCoord(), newPid: mapsIdentifier.getPID(), dMode: darkModeToggle)
+        popOverVC.update(newCoord: mapsIdentifier.getCoord(), newPid: mapsIdentifier.getPID(), switchDarkMode: darkModeToggle)
         self.present(popOverVC, animated: true)
     }
     
