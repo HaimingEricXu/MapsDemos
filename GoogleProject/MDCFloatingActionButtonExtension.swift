@@ -18,10 +18,24 @@ import MaterialComponents.MaterialButtons
 
 extension MDCFloatingButton {
     
+    // MARK: Functions for auto framing
+
+    /// Creates constraints so MDCFloatingActionButtons may appear consistent across devices
+    ///
+    /// - Parameters:
+    ///   - view: The UIView that we want to base the constraints on.
+    ///   - xcoord: The horizontal constant; not to be confused with coordinates on the map.
+    ///   - ycoord: The vertical constant; not to be confused with coordinates on the map.
     public func auto(view: UIView, xcoord: Double, ycoord: Double) {
         self.translatesAutoresizingMaskIntoConstraints = false
-        self.centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: CGFloat(xcoord / 2)).isActive = true
-        self.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: CGFloat(ycoord / 2)).isActive = true
+        self.centerXAnchor.constraint(
+            equalTo: view.centerXAnchor,
+            constant: CGFloat(xcoord / 2)
+        ).isActive = true
+        self.centerYAnchor.constraint(
+            equalTo: view.centerYAnchor,
+            constant: CGFloat(ycoord / 2)
+        ).isActive = true
         self.widthAnchor.constraint(equalToConstant: 48).isActive = true
         self.heightAnchor.constraint(equalToConstant: 48).isActive = true
     }

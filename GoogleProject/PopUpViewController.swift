@@ -19,16 +19,31 @@ import GoogleMaps
 
 class PopUpViewController: UIViewController {
 
+    /// A LocationImageController to access an image based on the location
     private let imageController = LocationImageGenerator()
+    
+    /// The PID of the location
     private var pid: String = ""
+    
+    /// A card to place everything on
     private var infoCard = MDCCard()
+    
+    /// The dimension of the card
     private var dim: CGFloat = 300
+    
+    /// The coordinates of the location
     private var coord = CLLocationCoordinate2D()
     
+    /// Dark mode indicator
+    private var darkMode = false
+    
+    // MARK: View controller lifecycle methods
+    
+    /// Creates up the popup and sets up the information
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        /// Setting the dimensions and offset
+        // Setting the dimensions and offset
         let xOffset = view.frame.width / 7.5
         let yOffset = view.frame.height / 5
         let dim: CGFloat = 300
@@ -38,22 +53,39 @@ class PopUpViewController: UIViewController {
         infoCard = MDCCard(frame: CGRect(x: xOffset, y: yOffset, width: dim, height: dim))
         let imageView = UIImageView()
         imageView.frame = CGRect(x: xOffset, y: yOffset, width: dim, height: dim * 2 / 3)
-        imageController.viewImage(placeId: pid, localMarker: GMSMarker(), imageView: imageView, select: true)
-        
-        let infoText =  UITextView(frame: CGRect(x: xOffset, y: yOffset + imageView.frame.height, width: dim, height: dim / 6))
-        infoText.text = "The current coordinates are (" + String(coord.latitude) + ", " + String(coord.longitude) + ")."
+        imageController.viewImage(
+            placeId: pid,
+            localMarker: GMSMarker(),
+            imageView: imageView,
+            select: true
+        )
+        let infoText =  UITextView(
+            frame: CGRect(
+                x: xOffset,
+                y: yOffset + imageView.frame.height,
+                width: dim,
+                height: dim / 6
+            )
+        )
+        infoText.textColor = darkMode ? .white : .black
+        infoText.backgroundColor = darkMode ? .black : .white
+        infoText.text = "The current coordinates are (" + String(coord.latitude) + ", "
+            + String(coord.longitude) + ")."
         infoText.font = UIFont.systemFont(ofSize: 10)
         infoText.centerVertically()
-        
         let backButton = UIButton(type: .custom)
-        backButton.frame = CGRect(x: xOffset, y: yOffset + imageView.frame.height + infoText.frame.height, width: dim, height: dim / 6)
+        backButton.frame = CGRect(
+            x: xOffset,
+            y: yOffset + imageView.frame.height + infoText.frame.height,
+            width: dim,
+            height: dim / 6
+        )
         backButton.layer.cornerRadius = 5
         backButton.layer.borderWidth = 1
         backButton.clipsToBounds = true
         backButton.backgroundColor = .systemTeal
         backButton.addTarget(self, action: #selector(removeAnimate), for: .touchUpInside)
         backButton.setTitle("Go Back", for: .normal)
-        
         view.addSubview(infoCard)
         view.addSubview(imageView)
         view.sendSubviewToBack(infoCard)
@@ -62,6 +94,7 @@ class PopUpViewController: UIViewController {
         view.addSubview(infoText)
     }
     
+    /// Shows the popup view controller with an animation
     private func showAnimate() {
         self.view.transform = CGAffineTransform(scaleX: 1.3, y: 1.3)
         self.view.alpha = 0.0;
@@ -71,27 +104,21 @@ class PopUpViewController: UIViewController {
         });
     }
     
-    func update(newCoord: CLLocationCoordinate2D, newPid: String) {
-        coord = newCoord
-        pid = newPid
-    }
-    
+    /// Dismisses the popup view controller
     @objc private func removeAnimate() {
         self.dismiss(animated: true, completion: nil)
     }
-}
-
-extension UITextView {
     
-    func centerVertically() {
-        let fittingSize = CGSize(width: bounds.width, height: CGFloat.greatestFiniteMagnitude)
-        let size = sizeThatFits(fittingSize)
-        let horizontalOffset = (bounds.size.width - size.width * zoomScale) / 2
-        let positiveHorizontalOffset = max(1, horizontalOffset)
-        contentOffset.x = -positiveHorizontalOffset
-        
-        let topOffset = (bounds.size.height - size.height * zoomScale) / 2
-        let positiveTopOffset = max(1, topOffset)
-        contentOffset.y = -positiveTopOffset
+    // MARK: Setter methods
+    
+    /// Updates the instance variables to a new location
+    ///
+    /// - Parameters:
+    ///   - newCoord: The new coordinates to represent.
+    ///   - newPid: The new PID to represent.
+    func update(newCoord: CLLocationCoordinate2D, newPid: String, setDarkMode: Bool) {
+        coord = newCoord
+        pid = newPid
+        darkMode = setDarkMode
     }
 }
