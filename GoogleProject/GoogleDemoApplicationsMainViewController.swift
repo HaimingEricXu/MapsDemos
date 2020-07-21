@@ -336,12 +336,20 @@ class GoogleDemoApplicationsMainViewController:
     private func setUpCluster() {
         let iconGenerator = GMUDefaultClusterIconGenerator()
         let algorithm = GMUNonHierarchicalDistanceBasedAlgorithm()
-        let renderer = GMUDefaultClusterRenderer(mapView: mapView, clusterIconGenerator: iconGenerator)
+        let renderer = GMUDefaultClusterRenderer(
+            mapView: mapView,
+            clusterIconGenerator: iconGenerator
+        )
         clusterManager = GMUClusterManager(map: mapView, algorithm: algorithm, renderer: renderer)
         clusterManager.setDelegate(self, mapDelegate: self)
         clusterManager.clearItems()
-        for marker in nearbyLocationMarkers {
-            clusterManager.add(POIItem(position: CLLocationCoordinate2DMake(marker.position.latitude, marker.position.longitude), name: "New Item"))
+        for m in nearbyLocationMarkers {
+            clusterManager.add(
+                POIItem(
+                    position: CLLocationCoordinate2DMake(m.position.latitude, m.position.longitude),
+                    name: "New Item"
+                )
+            )
         }
     }
     
@@ -646,6 +654,7 @@ class GoogleDemoApplicationsMainViewController:
         darkModeButton.addTarget(self, action: #selector(darkModeActivate), for: .touchUpInside)
         darkModeButton.removeFromSuperview()
         view.addSubview(darkModeButton)
+        
         generalButton.frame = CGRect(
             x: 0,
             y: self.view.frame.size.height - 868,
@@ -656,6 +665,7 @@ class GoogleDemoApplicationsMainViewController:
         generalButton.setTitle( "Clear All", for: .normal)
         generalButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
         view.addSubview(generalButton)
+        
         clearButton.frame = CGRect(
             x: clearXOffset,
             y: self.view.frame.size.height - clearYOffset,
@@ -666,6 +676,7 @@ class GoogleDemoApplicationsMainViewController:
         clearButton.setTitle("Clear All", for: .normal)
         clearButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
         view.addSubview(clearButton)
+        
         let buttons = [optionsButton, zoomOutButton, zoomInButton, currentLocButton, infoButton]
         let iconImages = ["gear", "minus", "plus", "location", "info"]
         optionsButton.addTarget(
@@ -815,7 +826,8 @@ class GoogleDemoApplicationsMainViewController:
         if locked {
             let tempZoom = mapView.camera.zoom + 0.5
             if Double(2000 - (tempZoom - 14) * 800) <= 0 {
-                warningMessage.text = "You cannot zoom in more; turn off the radius search feature via the action menu."
+                warningMessage.text = "You cannot zoom in more; turn off the radius search feature"
+                    + "via the action menu."
                 MDCSnackbarManager.show(warningMessage)
                 return
             }
