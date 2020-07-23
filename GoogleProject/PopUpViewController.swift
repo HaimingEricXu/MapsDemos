@@ -69,8 +69,7 @@ class PopUpViewController: UIViewController {
         )
         infoText.textColor = darkMode ? .white : .black
         infoText.backgroundColor = darkMode ? .black : .white
-        infoText.text = "The current coordinates are (" + String(coord.latitude) + ", "
-            + String(coord.longitude) + ")."
+        infoText.text = "The current coordinates are (\(coord.latitude), \((coord.longitude)))."
         infoText.font = UIFont.systemFont(ofSize: 10)
         infoText.centerVertically()
         let backButton = UIButton(type: .custom)

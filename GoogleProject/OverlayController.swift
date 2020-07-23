@@ -29,8 +29,7 @@ class OverlayController {
     ///
     /// - Parameter completion: The completion handler.
     func fetchData(completion: @escaping ([String : Any]?, Error?) -> Void) {
-        #error("Register for API keys and enter them below; then, delete this line")
-        let apiKey: String = "API KEY HERE"
+        let apiKey: String = apikeys.mapsAPI
         let url =  "https://maps.googleapis.com/maps/api/geocode/json?&latlng=\(lat),\(long)&key="
         let search = URL(string: url + apiKey)!
         let task = URLSession.shared.dataTask(with: search) { (data, response, error) in
@@ -59,8 +58,7 @@ class OverlayController {
     func geocode(
         latitude: Double,
         longitude: Double,
-        completion: @escaping (_ placemark: [CLPlacemark]?, _ error: Error?, _ pid: String)
-        -> Void
+        completion: @escaping (_ placemark: [CLPlacemark]?, _ error: Error?, _ pid: String) -> Void
     ) {
         CLGeocoder().reverseGeocodeLocation(
             CLLocation(
