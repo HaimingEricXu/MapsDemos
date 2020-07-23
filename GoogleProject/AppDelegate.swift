@@ -21,12 +21,24 @@ import GooglePlaces
 class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+<<<<<<< HEAD
         GMSServices.provideAPIKey(apikeys.mapsAPI)
         GMSPlacesClient.provideAPIKey(apikeys.placesAPI)
+||||||| b0312e7
+        #error("Register for API keys and enter them below; then, delete this line")
+        GMSServices.provideAPIKey("API KEY HERE")
+        GMSPlacesClient.provideAPIKey("API KEY HERE")
+=======
+        // TODO: Add your API keys
+        #error("Register for API keys and enter them below; then, delete this line")
+        GMSServices.provideAPIKey("API KEY HERE")
+        GMSPlacesClient.provideAPIKey("API KEY HERE")
+>>>>>>> 73ae79118319b0b39f135bfb209605fe1b07d53d
         return true
     }
 
     // MARK: UISceneSession Lifecycle
+
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
