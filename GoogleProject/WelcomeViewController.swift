@@ -17,6 +17,9 @@ import UIKit
 
 class WelcomeViewController: UIViewController {
     
+    // MARK: View controller lifecycle methods
+
+    /// Standard loading screen
     override func viewDidLoad() {
         super.viewDidLoad()
         let vc: UIViewController = storyboard?.instantiateViewController(identifier: "main_vc") as! GoogleDemoApplicationsMainViewController

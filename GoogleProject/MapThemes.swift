@@ -13,7 +13,8 @@
 * limitations under the License.
 */
 
-enum MapThemes {
+/// Contains the cloud-based map style IDs
+public enum MapThemes {
     static let darkThemeId = "d9395ca70ad7dcb4"
     static let lightThemeId = "209da1a703f62076"
 }

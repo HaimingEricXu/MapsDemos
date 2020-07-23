@@ -22,6 +22,13 @@ class POIItem: NSObject, GMUClusterItem {
     private var name: String!
     private var image: UIImage!
 
+    // MARK: Initialization functions
+
+    /// The constructor
+    ///
+    /// - Parameters:
+    ///   - position: The coordinates of the POIItem.
+    ///   - name: A random name; not too relevant for current usage.
     init(position: CLLocationCoordinate2D, name: String) {
         self.position = position
         self.name = name
