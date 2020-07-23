@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3A0CD2A524AA736200ECF296 /* PopUpViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0CD2A424AA736200ECF296 /* PopUpViewController.swift */; };
+		3AA3395E24CA079400AB745C /* apikeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA3395D24CA079400AB745C /* apikeys.swift */; };
 		3AC1ABAA24AAB678003D5CF0 /* MapThemes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC1ABA924AAB678003D5CF0 /* MapThemes.swift */; };
 		3AC1ABAC24AAB6D7003D5CF0 /* UIImageExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC1ABAB24AAB6D7003D5CF0 /* UIImageExtension.swift */; };
 		3AC1ABAE24AAC128003D5CF0 /* Clusters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC1ABAD24AAC128003D5CF0 /* Clusters.swift */; };
@@ -46,6 +47,7 @@
 
 /* Begin PBXFileReference section */
 		3A0CD2A424AA736200ECF296 /* PopUpViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopUpViewController.swift; sourceTree = "<group>"; };
+		3AA3395D24CA079400AB745C /* apikeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = apikeys.swift; sourceTree = "<group>"; };
 		3AC1ABA924AAB678003D5CF0 /* MapThemes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapThemes.swift; sourceTree = "<group>"; };
 		3AC1ABAB24AAB6D7003D5CF0 /* UIImageExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageExtension.swift; sourceTree = "<group>"; };
 		3AC1ABAD24AAC128003D5CF0 /* Clusters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clusters.swift; sourceTree = "<group>"; };
@@ -143,6 +145,7 @@
 				3AC1ABAB24AAB6D7003D5CF0 /* UIImageExtension.swift */,
 				3AC1ABAD24AAC128003D5CF0 /* Clusters.swift */,
 				3AC1ABA924AAB678003D5CF0 /* MapThemes.swift */,
+				3AA3395D24CA079400AB745C /* apikeys.swift */,
 				96764DAA24915F2400B4B0B3 /* WelcomeViewController.swift */,
 				3AC1ABB324ABFD77003D5CF0 /* dataset.json */,
 				96764DAC24915F2400B4B0B3 /* Main.storyboard */,
@@ -383,6 +386,7 @@
 				96F53C6224A26C0A00355240 /* OverlayController.swift in Sources */,
 				3AC1ABAA24AAB678003D5CF0 /* MapThemes.swift in Sources */,
 				96BE1A00249D4B890071C69F /* StreetViewController.swift in Sources */,
+				3AA3395E24CA079400AB745C /* apikeys.swift in Sources */,
 				3A0CD2A524AA736200ECF296 /* PopUpViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

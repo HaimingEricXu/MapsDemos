@@ -209,8 +209,7 @@ class GoogleDemoApplicationsMainViewController:
                 self.toggleOff()
             }
             self.trafficToggle = !trafficTemp
-            self.refreshMap(newLoc: false, darkModeSwitch: self.independentToggle
-                && darkModeTemp ? true : false)
+            self.refreshMap(newLoc: false, darkModeSwitch: self.independentToggle && darkModeTemp)
             self.refreshButtons()
             self.refreshScreen()
         })
