@@ -51,7 +51,7 @@
 		3A09AB3224C61DC70032E5D0 /* MDCFloatingActionButtonExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDCFloatingActionButtonExtension.swift; sourceTree = "<group>"; };
 		3A09AB3424C62D430032E5D0 /* UITextViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITextViewExtension.swift; sourceTree = "<group>"; };
 		3A0CD2A424AA736200ECF296 /* PopUpViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopUpViewController.swift; sourceTree = "<group>"; };
-		3AA3395A24CA051500AB745C /* apikeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = apikeys.swift; sourceTree = "<group>"; };
+		3AA3395D24CA079400AB745C /* apikeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = apikeys.swift; sourceTree = "<group>"; };
 		3AC1ABA924AAB678003D5CF0 /* MapThemes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapThemes.swift; sourceTree = "<group>"; };
 		3AC1ABAB24AAB6D7003D5CF0 /* UIImageExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageExtension.swift; sourceTree = "<group>"; };
 		3AC1ABAD24AAC128003D5CF0 /* Clusters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clusters.swift; sourceTree = "<group>"; };
@@ -395,6 +395,7 @@
 				3AC1ABAA24AAB678003D5CF0 /* MapThemes.swift in Sources */,
 				3A09AB3524C62D430032E5D0 /* UITextViewExtension.swift in Sources */,
 				96BE1A00249D4B890071C69F /* StreetViewController.swift in Sources */,
+				3AA3395E24CA079400AB745C /* apikeys.swift in Sources */,
 				3A0CD2A524AA736200ECF296 /* PopUpViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
