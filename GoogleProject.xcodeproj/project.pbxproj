@@ -10,7 +10,7 @@
 		3A09AB3324C61DC70032E5D0 /* MDCFloatingActionButtonExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A09AB3224C61DC70032E5D0 /* MDCFloatingActionButtonExtension.swift */; };
 		3A09AB3524C62D430032E5D0 /* UITextViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A09AB3424C62D430032E5D0 /* UITextViewExtension.swift */; };
 		3A0CD2A524AA736200ECF296 /* PopUpViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0CD2A424AA736200ECF296 /* PopUpViewController.swift */; };
-		3AA3395B24CA051500AB745C /* apikeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA3395A24CA051500AB745C /* apikeys.swift */; };
+		3AA3395B24CA051500AB745C /* (null) in Sources */ = {isa = PBXBuildFile; };
 		3AC1ABAA24AAB678003D5CF0 /* MapThemes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC1ABA924AAB678003D5CF0 /* MapThemes.swift */; };
 		3AC1ABAC24AAB6D7003D5CF0 /* UIImageExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC1ABAB24AAB6D7003D5CF0 /* UIImageExtension.swift */; };
 		3AC1ABAE24AAC128003D5CF0 /* Clusters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC1ABAD24AAC128003D5CF0 /* Clusters.swift */; };
@@ -25,7 +25,7 @@
 		96764DBE24915F2700B4B0B3 /* GoogleProjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96764DBD24915F2700B4B0B3 /* GoogleProjectTests.swift */; };
 		96764DC924915F2700B4B0B3 /* GoogleProjectUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96764DC824915F2700B4B0B3 /* GoogleProjectUITests.swift */; };
 		96BE1A00249D4B890071C69F /* StreetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96BE19FF249D4B890071C69F /* StreetViewController.swift */; };
-		96EC1543249BF61400F59A9C /* GoogleDemoApplicationsMainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EC1542249BF61400F59A9C /* GoogleDemoApplicationsMainViewController.swift */; };
+		96EC1543249BF61400F59A9C /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EC1542249BF61400F59A9C /* MainViewController.swift */; };
 		96F53C5E24A269A400355240 /* LocationImageGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F53C5D24A269A400355240 /* LocationImageGenerator.swift */; };
 		96F53C6224A26C0A00355240 /* OverlayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F53C6124A26C0A00355240 /* OverlayController.swift */; };
 /* End PBXBuildFile section */
@@ -51,7 +51,6 @@
 		3A09AB3224C61DC70032E5D0 /* MDCFloatingActionButtonExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDCFloatingActionButtonExtension.swift; sourceTree = "<group>"; };
 		3A09AB3424C62D430032E5D0 /* UITextViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITextViewExtension.swift; sourceTree = "<group>"; };
 		3A0CD2A424AA736200ECF296 /* PopUpViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopUpViewController.swift; sourceTree = "<group>"; };
-		3AA3395D24CA079400AB745C /* apikeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = apikeys.swift; sourceTree = "<group>"; };
 		3AC1ABA924AAB678003D5CF0 /* MapThemes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapThemes.swift; sourceTree = "<group>"; };
 		3AC1ABAB24AAB6D7003D5CF0 /* UIImageExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageExtension.swift; sourceTree = "<group>"; };
 		3AC1ABAD24AAC128003D5CF0 /* Clusters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clusters.swift; sourceTree = "<group>"; };
@@ -72,7 +71,7 @@
 		96764DC824915F2700B4B0B3 /* GoogleProjectUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleProjectUITests.swift; sourceTree = "<group>"; };
 		96764DCA24915F2700B4B0B3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		96BE19FF249D4B890071C69F /* StreetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreetViewController.swift; sourceTree = "<group>"; };
-		96EC1542249BF61400F59A9C /* GoogleDemoApplicationsMainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleDemoApplicationsMainViewController.swift; sourceTree = "<group>"; };
+		96EC1542249BF61400F59A9C /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		96F53C5D24A269A400355240 /* LocationImageGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationImageGenerator.swift; sourceTree = "<group>"; };
 		96F53C6124A26C0A00355240 /* OverlayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayController.swift; sourceTree = "<group>"; };
 		B1764BFB9789A36D696C5596 /* Pods-GoogleProject.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GoogleProject.debug.xcconfig"; path = "Target Support Files/Pods-GoogleProject/Pods-GoogleProject.debug.xcconfig"; sourceTree = "<group>"; };
@@ -141,7 +140,7 @@
 			children = (
 				96764DA624915F2400B4B0B3 /* AppDelegate.swift */,
 				96764DA824915F2400B4B0B3 /* SceneDelegate.swift */,
-				96EC1542249BF61400F59A9C /* GoogleDemoApplicationsMainViewController.swift */,
+				96EC1542249BF61400F59A9C /* MainViewController.swift */,
 				3A0CD2A424AA736200ECF296 /* PopUpViewController.swift */,
 				96BE19FF249D4B890071C69F /* StreetViewController.swift */,
 				96F53C5D24A269A400355240 /* LocationImageGenerator.swift */,
@@ -151,7 +150,6 @@
 				3A09AB3224C61DC70032E5D0 /* MDCFloatingActionButtonExtension.swift */,
 				3AC1ABAD24AAC128003D5CF0 /* Clusters.swift */,
 				3AC1ABA924AAB678003D5CF0 /* MapThemes.swift */,
-				3AA3395A24CA051500AB745C /* apikeys.swift */,
 				96764DAA24915F2400B4B0B3 /* WelcomeViewController.swift */,
 				3AC1ABB324ABFD77003D5CF0 /* dataset.json */,
 				96764DAC24915F2400B4B0B3 /* Main.storyboard */,
@@ -382,20 +380,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3AA3395B24CA051500AB745C /* apikeys.swift in Sources */,
+				3AA3395B24CA051500AB745C /* (null) in Sources */,
 				96764DAB24915F2400B4B0B3 /* WelcomeViewController.swift in Sources */,
 				96764DA724915F2400B4B0B3 /* AppDelegate.swift in Sources */,
 				3AC1ABAE24AAC128003D5CF0 /* Clusters.swift in Sources */,
 				96764DA924915F2400B4B0B3 /* SceneDelegate.swift in Sources */,
 				3AC1ABAC24AAB6D7003D5CF0 /* UIImageExtension.swift in Sources */,
-				96EC1543249BF61400F59A9C /* GoogleDemoApplicationsMainViewController.swift in Sources */,
+				96EC1543249BF61400F59A9C /* MainViewController.swift in Sources */,
 				96F53C5E24A269A400355240 /* LocationImageGenerator.swift in Sources */,
 				96F53C6224A26C0A00355240 /* OverlayController.swift in Sources */,
 				3A09AB3324C61DC70032E5D0 /* MDCFloatingActionButtonExtension.swift in Sources */,
 				3AC1ABAA24AAB678003D5CF0 /* MapThemes.swift in Sources */,
 				3A09AB3524C62D430032E5D0 /* UITextViewExtension.swift in Sources */,
 				96BE1A00249D4B890071C69F /* StreetViewController.swift in Sources */,
-				3AA3395E24CA079400AB745C /* apikeys.swift in Sources */,
 				3A0CD2A524AA736200ECF296 /* PopUpViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
