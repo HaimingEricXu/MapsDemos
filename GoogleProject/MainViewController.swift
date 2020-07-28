@@ -25,7 +25,7 @@ import MaterialComponents.MaterialSnackbar
 
 
 /// This struct contains the current location in terms of coordinates and place id
-struct identifiers {
+struct Identifiers {
     private var coord = CLLocationCoordinate2D(latitude: -33.86, longitude: 151.20)
     private var pid: String = "ChIJP3Sa8ziYEmsRUKgyFmh9AQM"
     
@@ -82,7 +82,6 @@ class GoogleDemoApplicationsMainViewController:
     /// Dark mode button and properties; may change depending on the device
     private var darkModeButton = UIButton()
     private var darkIconXOffset: CGFloat = 50
-    private var darkIconYOffset: CGFloat = 868
     private var darkIconDim: CGFloat = 50
     
     /// The heat map,  its data set, and other color setup
@@ -119,7 +118,7 @@ class GoogleDemoApplicationsMainViewController:
     private let maximumZoom: Float = 20.0
     
     /// Sets up the identifier that contains information on where the map should go to
-    private var mapsIdentifier = identifiers()
+    private var mapsIdentifier = Identifiers()
     
     /// When the user selects indoor toggle, the map goes to the interior of Sydney Opera House as default
     private let sydneyOperaHouseCoord = CLLocationCoordinate2D(
@@ -141,10 +140,7 @@ class GoogleDemoApplicationsMainViewController:
     /// Simple UI elements
     @IBOutlet weak private var scene: UIView!
     @IBOutlet weak private var welcomeLabel: UILabel!
-    private var generalButton = UIButton()
     private var clearButton = UIButton()
-    private var clearXOffset: CGFloat = 0
-    private var clearYOffset: CGFloat = 868
     private var clearWidth: CGFloat = 100
     private var clearHeight: CGFloat = 50
     
@@ -184,98 +180,80 @@ class GoogleDemoApplicationsMainViewController:
         
         // Next few lines add the buttons to the action menu
         let independence = MDCActionSheetAction(title: "Toggle Independent Features", image: nil, handler: { Void in
-            if self.locked {
-                self.warningMessage.text = "Please turn off the radius search feature first."
-                MDCSnackbarManager.show(self.warningMessage)
-                return
+            if !self.lockedSnackbar() {
+                self.independentToggle = !self.independentToggle
+                if self.independentToggle {
+                    self.toggleOff()
+                }
+                self.refreshButtons()
+                self.refreshMap(newLoc: false, darkModeSwitch: true)
+                self.refreshScreen()
             }
-            self.independentToggle = !self.independentToggle
-            if self.independentToggle {
-                self.toggleOff()
-            }
-            self.refreshButtons()
-            self.refreshMap(newLoc: false, darkModeSwitch: true)
-            self.refreshScreen()
         })
         let traffic = MDCActionSheetAction(title: "Toggle Traffic Overlay", image: nil, handler: { Void in
-            if self.locked {
-                self.warningMessage.text = "Please turn off the radius search feature first."
-                MDCSnackbarManager.show(self.warningMessage)
-                return
+            if !self.lockedSnackbar() {
+                let darkModeTemp = self.darkModeToggle
+                let trafficTemp = self.trafficToggle
+                if self.independentToggle {
+                    self.toggleOff()
+                }
+                self.trafficToggle = !trafficTemp
+                self.refreshMap(newLoc: false, darkModeSwitch: self.independentToggle && darkModeTemp)
+                self.refreshButtons()
+                self.refreshScreen()
             }
-            let darkModeTemp = self.darkModeToggle
-            let trafficTemp = self.trafficToggle
-            if self.independentToggle {
-                self.toggleOff()
-            }
-            self.trafficToggle = !trafficTemp
-            self.refreshMap(newLoc: false, darkModeSwitch: self.independentToggle && darkModeTemp)
-            self.refreshButtons()
-            self.refreshScreen()
         })
         let indoor = MDCActionSheetAction(title: "Toggle Indoor Map", image: nil, handler: { Void in
-            if self.locked {
-                self.warningMessage.text = "Please turn off the radius search feature first."
-                MDCSnackbarManager.show(self.warningMessage)
-                return
+            if !self.lockedSnackbar() {
+                let darkModeTemp = self.darkModeToggle
+                let indoorTemp = self.indoorToggle
+                if self.independentToggle {
+                    self.toggleOff()
+                }
+                self.indoorToggle = !indoorTemp
+                if self.indoorToggle {
+                    self.mapsIdentifier.updateIdentifier(
+                        newCoord: self.sydneyOperaHouseCoord,
+                        newPID: self.sydneOperaHousePID
+                    )
+                    self.zoom = self.maximumZoom
+                }
+                self.refreshMap(newLoc: self.indoorToggle, darkModeSwitch: self.independentToggle
+                    && darkModeTemp ? true : false)
+                self.refreshButtons()
+                self.refreshScreen()
             }
-            let darkModeTemp = self.darkModeToggle
-            let indoorTemp = self.indoorToggle
-            if self.independentToggle {
-                self.toggleOff()
-            }
-            self.indoorToggle = !indoorTemp
-            if self.indoorToggle {
-                self.mapsIdentifier.updateIdentifier(
-                    newCoord: self.sydneyOperaHouseCoord,
-                    newPID: self.sydneOperaHousePID
-                )
-                self.zoom = self.maximumZoom
-            }
-            self.refreshMap(newLoc: self.indoorToggle, darkModeSwitch: self.independentToggle
-                && darkModeTemp ? true : false)
-            self.refreshButtons()
-            self.refreshScreen()
         })
         let likely = MDCActionSheetAction(title: "Place Likelihoods", image: nil, handler: { Void in
-            if self.locked {
-                self.warningMessage.text = "Please turn off the radius search feature first."
-                MDCSnackbarManager.show(self.warningMessage)
-                return
+            if !self.lockedSnackbar() {
+                self.findLikelihoods()
+                self.refreshButtons()
+                self.refreshScreen()
             }
-            self.findLikelihoods()
-            self.refreshButtons()
-            self.refreshScreen()
         })
         let panorama = MDCActionSheetAction(title: "Panoramic View", image: nil, handler: { Void in
-            if self.locked {
-                self.warningMessage.text = "Please turn off the radius search feature first."
-                MDCSnackbarManager.show(self.warningMessage)
-                return
+            if !self.lockedSnackbar() {
+                self.openPanorama()
             }
-            self.openPanorama()
         })
         let heatMap = MDCActionSheetAction(title: "Toggle Heat Map", image: nil, handler: { Void in
             let heatMapTemp = self.heatMapToggle
-            if self.locked {
-                self.warningMessage.text = "Please turn off the radius search feature first."
-                MDCSnackbarManager.show(self.warningMessage)
-                return
+            if !self.lockedSnackbar() {
+                if self.independentToggle {
+                    self.toggleOff()
+                }
+                self.heatMapToggle = !heatMapTemp
+                if self.heatMapToggle {
+                    self.heatMapLayer.weightedData = self.heatMapPoints
+                    self.heatMapLayer.map = self.mapView
+                } else {
+                    self.heatMapLayer.weightedData = []
+                    self.heatMapLayer.map = nil
+                }
+                self.refreshButtons()
+                self.refreshMap(newLoc: false, darkModeSwitch: true)
+                self.refreshScreen()
             }
-            if self.independentToggle {
-                self.toggleOff()
-            }
-            self.heatMapToggle = !heatMapTemp
-            if self.heatMapToggle {
-                self.heatMapLayer.weightedData = self.heatMapPoints
-                self.heatMapLayer.map = self.mapView
-            } else {
-                self.heatMapLayer.weightedData = []
-                self.heatMapLayer.map = nil
-            }
-            self.refreshButtons()
-            self.refreshMap(newLoc: false, darkModeSwitch: true)
-            self.refreshScreen()
         })
         let radSearch = MDCActionSheetAction(title: "Radius Search", image: nil, handler: { Void in
             self.locked = !self.locked
@@ -313,6 +291,17 @@ class GoogleDemoApplicationsMainViewController:
     }
     
     // MARK: Features for methods and their helper functions
+    
+    /// Displays a snackbar message if the screen is locked and does nothing otherwise
+    ///
+    /// - Returns: whether or not the screen is locked
+   private func lockedSnackbar() -> Bool {
+       if (locked) {
+           warningMessage.text = "Please turn off the radius search feature first."
+           MDCSnackbarManager.show(warningMessage)
+       }
+       return locked
+   }
     
     /// Zooms in when the cluster icons are clicked
     ///
@@ -582,7 +571,7 @@ class GoogleDemoApplicationsMainViewController:
             independentIndicator.isHidden = false
             independentIndicator.frame = CGRect(
                 x: self.view.frame.size.width - indicatorXOffset,
-                y: view.frame.size.height - indicatorYOffset,
+                y: view.frame.size.height * 0.05,
                 width: indicatorDim,
                 height: indicatorDim
             )
@@ -637,7 +626,7 @@ class GoogleDemoApplicationsMainViewController:
     private func refreshButtons() {
         darkModeButton.frame = CGRect(
             x: self.view.frame.size.width - darkIconXOffset,
-            y: self.view.frame.size.height - darkIconYOffset,
+            y: self.view.frame.size.height * 0.03,
             width: darkIconDim,
             height: darkIconDim
         )
@@ -650,20 +639,9 @@ class GoogleDemoApplicationsMainViewController:
         darkModeButton.removeFromSuperview()
         view.addSubview(darkModeButton)
         
-        generalButton.frame = CGRect(
-            x: 0,
-            y: self.view.frame.size.height - 868,
-            width: 100,
-            height: 50
-        )
-        generalButton.setTitleColor(darkModeToggle ? .white : .blue, for: .normal)
-        generalButton.setTitle( "Clear All", for: .normal)
-        generalButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
-        view.addSubview(generalButton)
-        
         clearButton.frame = CGRect(
-            x: clearXOffset,
-            y: self.view.frame.size.height - clearYOffset,
+            x: 0,
+            y: self.view.frame.size.height * 0.04,
             width: clearWidth,
             height: clearHeight
         )
@@ -719,7 +697,7 @@ class GoogleDemoApplicationsMainViewController:
             view.addSubview(button)
             button.auto(view: view, xcoord: xcoord, ycoord: ycoord)
             button.setImage(UIImage(systemName: iconImages[index]), for: .normal)
-            ycoord -= 0.14 * Double(self.view.frame.size.height)
+            ycoord -= 0.16 * Double(self.view.frame.size.height)
             index += 1
         }
         darkModeButton.isHidden = false

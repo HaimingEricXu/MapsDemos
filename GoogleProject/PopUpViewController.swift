@@ -28,9 +28,6 @@ class PopUpViewController: UIViewController {
     /// A card to place everything on
     private var infoCard = MDCCard()
     
-    /// The dimension of the card
-    private var dim: CGFloat = 300
-    
     /// The coordinates of the location
     private var coord = CLLocationCoordinate2D()
     
@@ -44,9 +41,9 @@ class PopUpViewController: UIViewController {
         super.viewDidLoad()
         
         // Setting the dimensions and offset
-        let xOffset = view.frame.width / 7.5
+        let xOffset = view.frame.width / 10
         let yOffset = view.frame.height / 5
-        let dim: CGFloat = 300
+        let dim: CGFloat = view.frame.width * view.frame.height / 1100
         
         view.backgroundColor = UIColor.black.withAlphaComponent(0.8)
         showAnimate()

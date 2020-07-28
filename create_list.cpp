@@ -1,3 +1,5 @@
+/// This program reads in a raw set of data points and outputs a set of data points in the correct formatting that the Swift program can read; it is specifically for the heat map feature.
+
 #include <iostream>
 #include <fstream>
 using namespace std;
