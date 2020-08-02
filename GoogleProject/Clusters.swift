@@ -1,4 +1,3 @@
-
 /* Copyright (c) 2020 Google Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +13,24 @@
 * limitations under the License.
 */
 
-/// Contains the cloud-based map style IDs
-public enum MapThemes {
-    static let darkThemeId = "d9395ca70ad7dcb4"
-    static let lightThemeId = "209da1a703f62076"
+import Foundation
+import GoogleMapsUtils
+import UIKit
+
+class POIItem: NSObject, GMUClusterItem {
+    internal var position: CLLocationCoordinate2D
+    private var name: String!
+    private var image: UIImage!
+
+    // MARK: Initialization functions
+
+    /// The constructor
+    ///
+    /// - Parameters:
+    ///   - position: The coordinates of the POIItem.
+    ///   - name: A random name; not too relevant for current usage.
+    init(position: CLLocationCoordinate2D, name: String) {
+        self.position = position
+        self.name = name
+    }
 }

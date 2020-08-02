@@ -18,44 +18,50 @@ import GoogleMaps
 import GooglePlaces
 
 class StreetViewController: UIViewController {
-    
+
+    /// Button to trigger going back to main screen
     @IBOutlet private weak var backButton: UIButton!
-    private var lat: Double = 0.0
-    private var long: Double = 0.0
-    private var dark: Bool = false
-    
-    private var centerx: Int = 0
-    private var centery: Int = 74
-    private var width: Int = 414
-    private var height: Int = 825
-    
-    
+
+    /// The coordinate that the panoramic view should show
+    private var coord = CLLocationCoordinate2D()
+
+    // MARK: View controller lifecycle methods
+
+    /// Setup and calls showMap
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = dark ? .black : .white
         showMap()
     }
-    
-    private func showMap() {
-        let panoView = GMSPanoramaView.panorama(withFrame: CGRect(x: centerx, y: centery, width: width, height: height), nearCoordinate: CLLocationCoordinate2D(latitude: lat, longitude: long))
-        self.view.addSubview(panoView)
-        panoView.moveNearCoordinate(CLLocationCoordinate2D(latitude: lat, longitude: long))
-        self.view.bringSubviewToFront(backButton)
-    }
-    
-    func setLat(newLat: Double) {
-        lat = newLat
-    }
-    
-    func setLong(newLong: Double) {
-        long = newLong
-    }
-    
-    func setDark(darkMode: Bool) {
-        dark = darkMode
-    }
-    
+
+    /// Returns to main screen
     @IBAction private func menu(_ sender: Any) {
         self.dismiss(animated: true, completion: nil)
+    }
+
+    // MARK: Panorama related functions
+
+    /// Shows the panoramic view
+    private func showMap() {
+        let panoView = GMSPanoramaView.panorama(
+            withFrame: CGRect(
+                x: 0,
+                y: 0,
+                width: view.frame.width,
+                height: view.frame.height
+            ),
+            nearCoordinate: coord
+        )
+        self.view.addSubview(panoView)
+        panoView.moveNearCoordinate(coord)
+        self.view.bringSubviewToFront(backButton)
+    }
+
+    /// Sets the coordinates to the new value passed in
+    ///
+    /// - Parameters:
+    ///   - resultsController: The connected resultsController that the option was chosen from.
+    ///   - error: The error that occured
+    func setValues(newCoord: CLLocationCoordinate2D) {
+        coord = newCoord
     }
 }
