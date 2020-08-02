@@ -18,12 +18,12 @@ import GoogleMaps
 import GooglePlaces
 
 class LocationImageGenerator {
-
+    
     /// This should be the dimension of the image generated, regardless of the iPhone model.
     private let dim: Double = 110
-
+    
     // MARK: Image lookup and placement methods
-
+    
     /// Sets a marker's icon to a place's image, if it has one
     ///
     /// - Parameters:

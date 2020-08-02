@@ -17,9 +17,9 @@ import SwiftUI
 
 /// Extensions to make the marker images circular and translucent
 extension UIImage {
-
+    
     // MARK: Functions to change the visual qualities of the image
-
+    
     /// Sets whatever image to be in a circular frame
     var circleMask: UIImage? {
         let square = CGSize(
@@ -43,7 +43,7 @@ extension UIImage {
         imageView.layer.render(in: context)
         return UIGraphicsGetImageFromCurrentImageContext()
     }
-
+    
     /// Sets opacity to given alpha value
     ///
     /// - Parameter alpha: The level of opacity that we want.

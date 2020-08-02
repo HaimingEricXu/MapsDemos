@@ -18,28 +18,28 @@ import GoogleMaps
 import GooglePlaces
 
 class StreetViewController: UIViewController {
-
+    
     /// Button to trigger going back to main screen
     @IBOutlet private weak var backButton: UIButton!
-
+    
     /// The coordinate that the panoramic view should show
     private var coord = CLLocationCoordinate2D()
-
+    
     // MARK: View controller lifecycle methods
-
+    
     /// Setup and calls showMap
     override func viewDidLoad() {
         super.viewDidLoad()
         showMap()
     }
-
+    
     /// Returns to main screen
     @IBAction private func menu(_ sender: Any) {
         self.dismiss(animated: true, completion: nil)
     }
-
+    
     // MARK: Panorama related functions
-
+    
     /// Shows the panoramic view
     private func showMap() {
         let panoView = GMSPanoramaView.panorama(
@@ -55,7 +55,7 @@ class StreetViewController: UIViewController {
         panoView.moveNearCoordinate(coord)
         self.view.bringSubviewToFront(backButton)
     }
-
+    
     /// Sets the coordinates to the new value passed in
     ///
     /// - Parameters:
