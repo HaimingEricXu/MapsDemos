@@ -21,25 +21,16 @@ import GooglePlaces
 class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        /*#error Register for API keys and enter them below; then, delete this line
-        GMSServices.provideAPIKey("")
-        GMSPlacesClient.provideAPIKey("")*/
-        GMSServices.provideAPIKey("AIzaSyC3a6xaPcOk9S1gFxf9iGrNSfLHOWxOxN8")
-        GMSPlacesClient.provideAPIKey("AIzaSyCOKNyDTI9HNGP6XWHFTXvzTVG4Ur2dzec")
+        GMSServices.provideAPIKey(apikeys.mapsAPI)
+        GMSPlacesClient.provideAPIKey(apikeys.placesAPI)
         return true
     }
 
     // MARK: UISceneSession Lifecycle
-
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
-        // Called when a new scene session is being created.
-        // Use this method to select a configuration to create the new scene with.
         return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
 
     func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
-        // Called when the user discards a scene session.
-        // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
-        // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
 }

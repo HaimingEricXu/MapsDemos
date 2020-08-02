@@ -13,17 +13,9 @@
 * limitations under the License.
 */
 
-import UIKit
-
-class WelcomeViewController: UIViewController {
-    
-    // MARK: View controller lifecycle methods
-
-    /// Standard loading screen
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        let vc: UIViewController = storyboard?.instantiateViewController(identifier: "main_vc") as! GoogleDemoApplicationsMainViewController
-        vc.modalPresentationStyle = .fullScreen
-        present(vc, animated: true)
-    }
+/// API keys needed for this project
+public enum apikeys {
+    //#error("Register for API keys and enter them below; then, delete this line")
+    static let mapsAPI = "AIzaSyC3a6xaPcOk9S1gFxf9iGrNSfLHOWxOxN8"
+    static let placesAPI = "AIzaSyCOKNyDTI9HNGP6XWHFTXvzTVG4Ur2dzec"
 }
