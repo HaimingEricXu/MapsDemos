@@ -18,13 +18,13 @@ import GooglePlaces
 import GoogleMaps
 
 class OverlayController {
-
+    
     private var overlays = [GMSCircle]()
     private var lat: Double = 0.0
     private var long: Double = 0.0
-
+    
     // MARK: Methods to get the placeID from a set of coordinates
-
+    
     /// Searches an API for the entire data JSON file based on the lat and long values
     ///
     /// - Parameter completion: The completion handler.
@@ -48,7 +48,7 @@ class OverlayController {
         }
         task.resume()
     }
-
+    
     /// Finds and parses data to extract a placeId from a set of coordinates
     ///
     /// - Parameters:
@@ -109,9 +109,9 @@ class OverlayController {
             }
         }
     }
-
+    
     // MARK: - Draw and erase functions
-
+    
     /// Draws a circle on a map
     ///
     /// - Parameters:
@@ -135,7 +135,7 @@ class OverlayController {
         circle.map = mapView
         overlays.append(circle)
     }
-
+    
     /// Clears all overlays created (for now, the only possible overlay is the circle)
     func clear() {
         for x in overlays {
