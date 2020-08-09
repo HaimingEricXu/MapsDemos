@@ -56,12 +56,12 @@ class StreetViewController: UIViewController {
         self.view.bringSubviewToFront(backButton)
     }
     
-    /// Sets the coordinates to the new value passed in
+    /// Sets the coordinates to the new value passed in; this function is called from GoogleDemoApplicationsMainViewController
     ///
     /// - Parameters:
     ///   - resultsController: The connected resultsController that the option was chosen from.
     ///   - error: The error that occured
-    func setValues(newCoord: CLLocationCoordinate2D) {
+    public func setValues(newCoord: CLLocationCoordinate2D) {
         coord = newCoord
     }
 }

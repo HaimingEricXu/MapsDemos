@@ -19,8 +19,7 @@ import UIKit
 
 class POIItem: NSObject, GMUClusterItem {
     internal var position: CLLocationCoordinate2D
-    private var name: String!
-    private var image: UIImage!
+    private var name: String = ""
 
     // MARK: Initialization functions
 

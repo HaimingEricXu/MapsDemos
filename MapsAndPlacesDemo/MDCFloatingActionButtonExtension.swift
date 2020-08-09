@@ -27,16 +27,16 @@ extension MDCFloatingButton {
     ///   - xcoord: The horizontal constant; not to be confused with coordinates on the map.
     ///   - ycoord: The vertical constant; not to be confused with coordinates on the map.
     public func auto(view: UIView, xcoord: Double, ycoord: Double) {
-        self.translatesAutoresizingMaskIntoConstraints = false
-        self.centerXAnchor.constraint(
+        translatesAutoresizingMaskIntoConstraints = false
+        centerXAnchor.constraint(
             equalTo: view.centerXAnchor,
             constant: CGFloat(xcoord / 2)
         ).isActive = true
-        self.centerYAnchor.constraint(
+        centerYAnchor.constraint(
             equalTo: view.centerYAnchor,
             constant: CGFloat(ycoord / 2)
         ).isActive = true
-        self.widthAnchor.constraint(equalToConstant: 48).isActive = true
-        self.heightAnchor.constraint(equalToConstant: 48).isActive = true
+        widthAnchor.constraint(equalToConstant: 48).isActive = true
+        heightAnchor.constraint(equalToConstant: 48).isActive = true
     }
 }

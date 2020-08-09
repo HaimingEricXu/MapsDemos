@@ -25,7 +25,7 @@ import MaterialComponents.MaterialSnackbar
 
 
 /// This struct contains the current location in terms of coordinates and place id
-struct Identifiers {
+struct CoordinateAndPlaceID {
     private var coord = CLLocationCoordinate2D(latitude: -33.86, longitude: 151.20)
     private var pid: String = "ChIJP3Sa8ziYEmsRUKgyFmh9AQM"
     
@@ -55,6 +55,20 @@ class GoogleDemoApplicationsMainViewController:
     CLLocationManagerDelegate,
     GMUClusterManagerDelegate
 {
+    /// A view bar that holds the search bar
+    @IBOutlet weak var searchView: UIView!
+    
+    /// The top bar which contains the title and buttons
+    @IBOutlet weak var topBar: UIView!
+    
+    /// Dark mode button and properties; may change depending on the device
+    private var darkIconXOffset: CGFloat = 50
+    private var darkIconDim: CGFloat = 50
+    @IBOutlet weak var darkModeButton: UIButton!
+    
+    /// Clears all the feature generated markers on the screen
+    @IBOutlet weak var clearAllButton: UIButton!
+    
     /// The initial zoom value; any change here is universal, so no need to look for zoom values when the app is booted
     private let initialZoom: Float = 10.0
     
@@ -76,13 +90,8 @@ class GoogleDemoApplicationsMainViewController:
     /// Switches between a marker and an image
     private var imageOn = false
     
-    /// Locks the screen for radius search
+    /// Locks  to combat conflicting features
     private var locked = false
-    
-    /// Dark mode button and properties; may change depending on the device
-    private var darkModeButton = UIButton()
-    private var darkIconXOffset: CGFloat = 50
-    private var darkIconDim: CGFloat = 50
     
     /// The heat map,  its data set, and other color setup
     private let heatMapLayer: GMUHeatmapTileLayer = GMUHeatmapTileLayer()
@@ -112,13 +121,13 @@ class GoogleDemoApplicationsMainViewController:
     private var indicatorDim: CGFloat = 20
     
     /// The zoom of the camera
-    private var zoom: Float!
+    private var zoom: Float = 10.0
     
     // The maximum zoom value; useful for indoor maps
     private let maximumZoom: Float = 20.0
     
     /// Sets up the identifier that contains information on where the map should go to
-    private var mapsIdentifier = Identifiers()
+    private var mapsIdentifier = CoordinateAndPlaceID()
     
     /// When the user selects indoor toggle, the map goes to the interior of Sydney Opera House as default
     private let sydneyOperaHouseCoord = CLLocationCoordinate2D(
@@ -140,7 +149,6 @@ class GoogleDemoApplicationsMainViewController:
     /// Simple UI elements
     @IBOutlet weak private var scene: UIView!
     @IBOutlet weak private var welcomeLabel: UILabel!
-    private var clearButton = UIButton()
     private var clearWidth: CGFloat = 100
     private var clearHeight: CGFloat = 50
     
@@ -149,11 +157,12 @@ class GoogleDemoApplicationsMainViewController:
     
     /// Marker storage arrays
     private var nearbyLocationMarkers = [GMSMarker]()
-    private let nearbyLocationIDs: NSMutableArray = []
+    private var nearbyLocationIDs = [String]()
+    private var nearbyLocationImages = [Bool]()
     private var radiusMarkers = [GMSMarker]()
     
     /// Material design elements for UI
-    private let actionSheet = MDCActionSheetController(title: "Options", message: "Pick a feature")
+    private var actionSheet = MDCActionSheetController(title: "", message: "")
     private let optionsButton = MDCFloatingButton()
     private let zoomInButton = MDCFloatingButton()
     private let zoomOutButton = MDCFloatingButton()
@@ -163,7 +172,7 @@ class GoogleDemoApplicationsMainViewController:
     
     // MARK: View controller lifecycle methods
 
-    /// Sets up the initial screen and adds options to the action sheet
+    /// Sets up the initial screen
     override func viewDidLoad() {
         super.viewDidLoad()
         requestAuthorization()
@@ -178,8 +187,14 @@ class GoogleDemoApplicationsMainViewController:
         heatMapLayer.map = mapView
         executeHeatMap()
         
-        // Next few lines add the buttons to the action menu
-        let independence = MDCActionSheetAction(title: "Toggle Independent Features", image: nil, handler: { Void in
+        updateActionMenu()
+        setUpCluster()
+    }
+    
+    /// Adds the buttons to the MDC action menu
+    private func updateActionMenu() {
+        let tempText = independentToggle ? "Multiple" : "Independent"
+        let independence = MDCActionSheetAction(title: "Show " + tempText + " Features", image: nil, handler: { Void in
             if !self.lockedSnackbar() {
                 self.independentToggle = !self.independentToggle
                 if self.independentToggle {
@@ -188,6 +203,7 @@ class GoogleDemoApplicationsMainViewController:
                 self.refreshButtons()
                 self.refreshMap(newLoc: false, darkModeSwitch: true)
                 self.refreshScreen()
+                self.updateActionMenu()
             }
         })
         let traffic = MDCActionSheetAction(title: "Toggle Traffic Overlay", image: nil, handler: { Void in
@@ -224,14 +240,13 @@ class GoogleDemoApplicationsMainViewController:
                 self.refreshScreen()
             }
         })
-        let likely = MDCActionSheetAction(title: "Place Likelihoods", image: nil, handler: { Void in
+        let likely = MDCActionSheetAction(title: "Show Place Likelihoods", image: nil, handler: { Void in
             if !self.lockedSnackbar() {
                 self.findLikelihoods()
-                self.refreshButtons()
                 self.refreshScreen()
             }
         })
-        let panorama = MDCActionSheetAction(title: "Panoramic View", image: nil, handler: { Void in
+        let panorama = MDCActionSheetAction(title: "Show Panoramic View", image: nil, handler: { Void in
             if !self.lockedSnackbar() {
                 self.openPanorama()
             }
@@ -246,6 +261,7 @@ class GoogleDemoApplicationsMainViewController:
                 if self.heatMapToggle {
                     self.heatMapLayer.weightedData = self.heatMapPoints
                     self.heatMapLayer.map = self.mapView
+                    self.zoom = 2
                 } else {
                     self.heatMapLayer.weightedData = []
                     self.heatMapLayer.map = nil
@@ -279,10 +295,10 @@ class GoogleDemoApplicationsMainViewController:
         let actions: NSMutableArray = [
             independence, traffic, indoor, panorama, likely, heatMap, radSearch
         ]
+        actionSheet = MDCActionSheetController(title: "", message: "")
         for a in actions {
             actionSheet.addAction(a as! MDCActionSheetAction)
         }
-        setUpCluster()
     }
     
     /// Requests the user's location
@@ -297,7 +313,7 @@ class GoogleDemoApplicationsMainViewController:
     /// - Returns: whether or not the screen is locked
    private func lockedSnackbar() -> Bool {
        if (locked) {
-           warningMessage.text = "Please turn off the radius search feature first."
+           warningMessage.text = "Please turn off conflicting features first."
            MDCSnackbarManager.show(warningMessage)
        }
        return locked
@@ -357,8 +373,8 @@ class GoogleDemoApplicationsMainViewController:
             for item in object {
                 // Given the way the code parses through the json file, the lat and long can be
                 // retrieved via item like a dictionary
-                let lat: Double = item["lat"] as? CLLocationDegrees ?? 0.0
-                let lng: Double = item["lng"] as? CLLocationDegrees ?? 0.0
+                let lat = item["lat"] as? CLLocationDegrees ?? 0.0
+                let lng = item["lng"] as? CLLocationDegrees ?? 0.0
                 
                 // Creates a weighted coordinate for that lat and long; a weighted coordinate is
                 // how the heatmap gets different colors
@@ -426,7 +442,7 @@ class GoogleDemoApplicationsMainViewController:
     /// - Parameter sender: The UIButton that, when pressed, triggers this function.
     @objc func darkModeActivate(sender: UIButton!) {
         if locked {
-            self.warningMessage.text = "Please turn off the radius search feature first."
+            warningMessage.text = "Please turn off conflicting features first."
             MDCSnackbarManager.show(self.warningMessage)
             return
         }
@@ -445,20 +461,19 @@ class GoogleDemoApplicationsMainViewController:
     /// - Parameter sender: The UIButton that, when pressed, triggers this function.
     @objc func clearAll(sender: UIButton!) {
         if locked {
-            self.warningMessage.text = "Please turn off the radius search feature first."
+            warningMessage.text = "Please turn off conflicting features first."
             MDCSnackbarManager.show(self.warningMessage)
             return
         }
         nearbyLocationMarkers.forEach { $0.map = nil }
-        radiusMarkers.forEach { $0.map = nil }
-        radiusMarkers.removeAll()
         nearbyLocationMarkers.removeAll()
-        nearbyLocationIDs.removeAllObjects()
+        nearbyLocationIDs.removeAll()
         overlayController.clear()
         clusterManager.clearItems()
+        refreshButtons()
     }
     
-    /// Turns off all toggles and clears the heatmap dataset; radius search markers are cleared when the function ends
+    /// Turns off all toggles and clears the heatmap dataset
     private func toggleOff() {
         trafficToggle = false
         indoorToggle = false
@@ -470,6 +485,11 @@ class GoogleDemoApplicationsMainViewController:
         
     /// Displays icons and images for elements in the placeLikelihoodList
     private func findLikelihoods() {
+        nearbyLocationMarkers.forEach {
+            $0.map = nil
+        }
+        nearbyLocationMarkers.removeAll()
+        nearbyLocationIDs.removeAll()
         placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
             guard error == nil else {
                 print("Current place error: \(error?.localizedDescription ?? "")")
@@ -479,40 +499,43 @@ class GoogleDemoApplicationsMainViewController:
                 print("The placeLikelihoodList is possibly nil")
                 return
             }
-            var counter: Int = 0
-            var first: Bool = true
+            var counter = 0
+            var first = true
             for loc in placeLikelihoodList.likelihoods {
                 
-                // We need to skip the first element because the first element is the actual
-                // location of the phone, while we want to take the nearby locations
+                // Need to skip the first element because the first element is the location of the
+                // purple marker; the others should be red
                 if first {
                     first = false
                     continue
                 }
-                let temp: GMSMarker = GMSMarker()
+                let temp = GMSMarker()
                 temp.position = CLLocationCoordinate2D(
                     latitude: loc.place.coordinate.latitude,
                     longitude: loc.place.coordinate.longitude
                 )
                 self.nearbyLocationMarkers.append(temp)
-                self.nearbyLocationIDs.add(loc.place.placeID!)
+                self.nearbyLocationIDs.append(loc.place.placeID!)
+                self.nearbyLocationImages.append(false)
             }
             
-            // Adds the marker to the cluster manager and finds images for the markers
+            // Adds the marker to the cluster manager
             for locationMarker in self.nearbyLocationMarkers {
+                locationMarker.map = self.mapView
                 self.locationImageController.viewImage(
-                    placeId: self.nearbyLocationIDs[counter] as! String,
+                    placeId: self.nearbyLocationIDs[counter],
                     localMarker: locationMarker,
                     imageView: UIImageView(),
                     tapped: false
                 )
-                locationMarker.map = self.mapView
                 counter += 1
-                let tempLat = locationMarker.position.latitude
-                let tempLong = locationMarker.position.longitude
                 self.clusterManager.add(POIItem(
-                    position: CLLocationCoordinate2DMake(tempLat, tempLong),
-                    name: "New Item")
+                    position: CLLocationCoordinate2DMake(
+                        locationMarker.position.latitude,
+                        locationMarker.position.longitude
+                    ),
+                    name: "New Item"
+                    )
                 )
             }
             
@@ -535,6 +558,7 @@ class GoogleDemoApplicationsMainViewController:
                 )
                 self.zoom = 20
                 self.refreshMap(newLoc: true)
+                self.refreshButtons()
                 self.refreshScreen()
             })
         })
@@ -549,6 +573,11 @@ class GoogleDemoApplicationsMainViewController:
     private func iconVisibility(visible: Bool, list: [GMSMarker]) {
         for marker in list {
             marker.map = visible ? mapView : nil
+        }
+        if !visible && nearbyLocationImages.count > 0 {
+            for index in 0...nearbyLocationImages.count - 1 {
+                nearbyLocationImages[index] = false
+            }
         }
     }
         
@@ -570,7 +599,7 @@ class GoogleDemoApplicationsMainViewController:
         if independentToggle {
             independentIndicator.isHidden = false
             independentIndicator.frame = CGRect(
-                x: self.view.frame.size.width - indicatorXOffset,
+                x: view.frame.size.width * 0.9,
                 y: view.frame.size.height * 0.05,
                 width: indicatorDim,
                 height: indicatorDim
@@ -581,6 +610,8 @@ class GoogleDemoApplicationsMainViewController:
             independentIndicator.isHidden = true
         }
         
+        view.addSubview(searchView)
+
         // Sets up the search bar and results view controller
         view.backgroundColor = darkModeToggle ? .darkGray : .white
         scene.backgroundColor = darkModeToggle ? .darkGray : .white
@@ -590,7 +621,7 @@ class GoogleDemoApplicationsMainViewController:
         searchController?.searchResultsUpdater = resultsViewController
         searchController?.searchBar.sizeToFit()
         definesPresentationContext = true
-        scene.addSubview((searchController?.searchBar)!)
+        searchView.addSubview((searchController?.searchBar)!)
         searchController?.searchBar.sizeToFit()
         
         // Changes the results view controller and search bar to be the right color
@@ -603,8 +634,7 @@ class GoogleDemoApplicationsMainViewController:
         searchController?.searchBar.tintColor = darkModeToggle ? .white : .black
         searchController?.searchBar.backgroundColor = darkModeToggle ? .black : .white
         
-        guard let tf = searchController?.searchBar.value(forKey: "searchField") as? UITextField
-        else {
+        guard let tf = searchController?.searchBar.value(forKey: "searchField") as? UITextField else {
             print("Text field is nil")
             return
         }
@@ -612,7 +642,7 @@ class GoogleDemoApplicationsMainViewController:
         
         // Sets other view elements to the right colors
         welcomeLabel.textColor = darkModeToggle ? .white : .black
-        self.view.backgroundColor = darkModeToggle ? .black : .white
+        view.backgroundColor = darkModeToggle ? .black : .white
         actionSheet.actionTextColor = darkModeToggle ? .white : .black
         actionSheet.actionTintColor = darkModeToggle ? .black : .white
         actionSheet.backgroundColor = darkModeToggle ? .black : .white
@@ -620,16 +650,13 @@ class GoogleDemoApplicationsMainViewController:
         actionSheet.rippleColor = darkModeToggle ? .black : .white
         actionSheet.titleTextColor = darkModeToggle ? .white : .black
         actionSheet.messageTextColor = darkModeToggle ? .white : .black
+        
+        topBar.backgroundColor = darkModeToggle ? .black : .white
+        topBar.tintColor = darkModeToggle ? .black : .white
     }
     
     /// Sets up the functionality and location of the FABs
     private func refreshButtons() {
-        darkModeButton.frame = CGRect(
-            x: self.view.frame.size.width - darkIconXOffset,
-            y: self.view.frame.size.height * 0.03,
-            width: darkIconDim,
-            height: darkIconDim
-        )
         darkModeButton.setImage(
             UIImage(systemName: darkModeToggle ? "sun.min.fill" : "moon.stars.fill"),
             for: .normal
@@ -637,18 +664,30 @@ class GoogleDemoApplicationsMainViewController:
         darkModeButton.tintColor = darkModeToggle ? .yellow : .blue
         darkModeButton.addTarget(self, action: #selector(darkModeActivate), for: .touchUpInside)
         darkModeButton.removeFromSuperview()
-        view.addSubview(darkModeButton)
-        
-        clearButton.frame = CGRect(
+        topBar.addSubview(darkModeButton)
+        darkModeButton.frame = CGRect(
             x: 0,
-            y: self.view.frame.size.height * 0.04,
-            width: clearWidth,
-            height: clearHeight
+            y: view.frame.size.height * 0.028,
+            width: darkIconDim,
+            height: darkIconDim
         )
-        clearButton.setTitleColor(darkModeToggle ? .white : .blue, for: .normal)
-        clearButton.setTitle("Clear All", for: .normal)
-        clearButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
-        view.addSubview(clearButton)
+        topBar.addSubview(clearAllButton)
+        clearAllButton.frame = CGRect(
+            x: darkIconDim / 2,
+            y: view.frame.size.height * 0.028,
+            width: darkIconDim,
+            height: darkIconDim
+        )
+        topBar.bringSubviewToFront(clearAllButton)
+        welcomeLabel.frame = CGRect(
+            x: 0,
+            y: view.frame.size.height * 0.028,
+            width: view.frame.size.width,
+            height: darkIconDim
+        )
+        clearAllButton.tintColor = .blue
+        clearAllButton.isHidden = nearbyLocationMarkers.count == 0
+        clearAllButton.addTarget(self, action: #selector(clearAll), for: .touchUpInside)
         
         let buttons = [optionsButton, zoomOutButton, zoomInButton, currentLocButton, infoButton]
         let iconImages = ["gear", "minus", "plus", "location", "info"]
@@ -695,11 +734,13 @@ class GoogleDemoApplicationsMainViewController:
             button.setElevation(ShadowElevation(rawValue: 6), for: .normal)
             button.removeFromSuperview()
             view.addSubview(button)
+            view.bringSubviewToFront(button)
             button.auto(view: view, xcoord: xcoord, ycoord: ycoord)
             button.setImage(UIImage(systemName: iconImages[index]), for: .normal)
             ycoord -= 0.16 * Double(self.view.frame.size.height)
             index += 1
         }
+        //clearAllButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 14)
         darkModeButton.isHidden = false
     }
     
@@ -738,11 +779,13 @@ class GoogleDemoApplicationsMainViewController:
             mapView = GMSMapView(frame: self.view.frame, mapID: mapID, camera: camera)
         }
         
-        iconVisibility(visible: zoom <= 18 ? false : true, list: nearbyLocationMarkers)
-        iconVisibility(visible: zoom < 14 ? false : true, list: radiusMarkers)
+        iconVisibility(visible: zoom > 18, list: nearbyLocationMarkers)
         mapView.delegate = self
         mapView.settings.setAllGesturesEnabled(!locked)
         scene.addSubview(mapView)
+        view.addSubview(topBar)
+        view.sendSubviewToBack(topBar)
+        view.sendSubviewToBack(scene)
         
         // Sets the heapmap to appear on the map, but unless the heatmap feature is on, it has no
         // data so it looks empty
@@ -858,7 +901,7 @@ class GoogleDemoApplicationsMainViewController:
             currentLocButton.expand(true, completion: nil)
         }
         if locked {
-            self.warningMessage.text = "Please turn off the radius search feature first."
+            warningMessage.text = "Please turn off conflicting features first."
             MDCSnackbarManager.show(self.warningMessage)
             return
         }
@@ -901,10 +944,9 @@ class GoogleDemoApplicationsMainViewController:
             infoButton.expand(true, completion: nil)
         }
         
-        // Like other features, you should not be able access this feature while in the radius
-        // search feature
+        // Like other features, you should not be able access this feature while locked
         if locked {
-            warningMessage.text = "Please turn off the radius search feature first."
+            warningMessage.text = "Please turn off conflicting features first."
             MDCSnackbarManager.show(warningMessage)
             return
         }
@@ -922,6 +964,8 @@ class GoogleDemoApplicationsMainViewController:
         self.present(popOverVC, animated: true)
     }
 }
+
+// MARK: Various helpful extensions
 
 /// Extension for the search view controller and results view controller that deals with user interaction
 extension GoogleDemoApplicationsMainViewController: GMSAutocompleteResultsViewControllerDelegate {

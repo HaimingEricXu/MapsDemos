@@ -29,7 +29,7 @@ class OverlayController {
     ///
     /// - Parameter completion: The completion handler.
     func fetchData(completion: @escaping ([String : Any]?, Error?) -> Void) {
-        let apiKey: String = apikeys.mapsAPI
+        let apiKey: String = ApiKeys.mapsAPI
         let url =  "https://maps.googleapis.com/maps/api/geocode/json?&latlng=\(lat),\(long)&key="
         let search = URL(string: url + apiKey)!
         let task = URLSession.shared.dataTask(with: search) { (data, response, error) in
@@ -49,7 +49,7 @@ class OverlayController {
         task.resume()
     }
     
-    /// Finds and parses data to extract a placeId from a set of coordinates
+    /// Finds and parses data to extract a placeId from a set of coordinates and sends the appropriate data to the completion handler
     ///
     /// - Parameters:
     ///   - latitude: The latitude of the location.
