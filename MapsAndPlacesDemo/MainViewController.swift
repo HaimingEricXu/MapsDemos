@@ -299,6 +299,7 @@ class GoogleDemoApplicationsMainViewController:
         for a in actions {
             actionSheet.addAction(a as! MDCActionSheetAction)
         }
+        refreshScreen()
     }
     
     /// Requests the user's location
