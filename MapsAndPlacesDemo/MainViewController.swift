@@ -202,7 +202,6 @@ class GoogleDemoApplicationsMainViewController:
                 }
                 self.refreshButtons()
                 self.refreshMap(newLoc: false, darkModeSwitch: true)
-                self.refreshScreen()
                 self.updateActionMenu()
             }
         })
@@ -216,7 +215,6 @@ class GoogleDemoApplicationsMainViewController:
                 self.trafficToggle = !trafficTemp
                 self.refreshMap(newLoc: false, darkModeSwitch: self.independentToggle && darkModeTemp)
                 self.refreshButtons()
-                self.refreshScreen()
             }
         })
         let indoor = MDCActionSheetAction(title: "Toggle Indoor Map", image: nil, handler: { Void in
@@ -237,13 +235,11 @@ class GoogleDemoApplicationsMainViewController:
                 self.refreshMap(newLoc: self.indoorToggle, darkModeSwitch: self.independentToggle
                     && darkModeTemp ? true : false)
                 self.refreshButtons()
-                self.refreshScreen()
             }
         })
         let likely = MDCActionSheetAction(title: "Show Place Likelihoods", image: nil, handler: { Void in
             if !self.lockedSnackbar() {
                 self.findLikelihoods()
-                self.refreshScreen()
             }
         })
         let panorama = MDCActionSheetAction(title: "Show Panoramic View", image: nil, handler: { Void in
@@ -268,7 +264,6 @@ class GoogleDemoApplicationsMainViewController:
                 }
                 self.refreshButtons()
                 self.refreshMap(newLoc: false, darkModeSwitch: true)
-                self.refreshScreen()
             }
         })
         let radSearch = MDCActionSheetAction(title: "Radius Search", image: nil, handler: { Void in
@@ -290,7 +285,6 @@ class GoogleDemoApplicationsMainViewController:
             }
             self.refreshButtons()
             self.refreshMap(newLoc: true)
-            self.refreshScreen()
         })
         let actions: NSMutableArray = [
             independence, traffic, indoor, panorama, likely, heatMap, radSearch
